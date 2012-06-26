@@ -197,7 +197,7 @@ function alma_reservation_update($account, $ids, $options) {
   $reservations = alma_reservation_get_reservations($account);
   $updated = FALSE;
 
-  //Processing ids. If at least one is updated return true
+  //Processing IDs. If at least one is updated return true.
   foreach($ids as $id) {
     if (isset($reservations[$id])) {
       $expiry_date = !empty($options['expiry']) ? alma_reservation_format_date($options['expiry']) : $reservations[$id]['valid_to'];
@@ -212,7 +212,7 @@ function alma_reservation_update($account, $ids, $options) {
     }
   }
 
-  // Clear cache after all reservations have been updated
+  // Clear cache after all reservations have been updated.
   if ($updated) {
     alma_reservation_clear_cache();
   }
