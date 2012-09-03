@@ -112,6 +112,13 @@ function alma_settings_form() {
     '#default_value' => variable_get('alma_base_url', ''),
   );
 
+  $form['alma']['alma_enable_reservation_deletion'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable reservation deletion'),
+    '#default_value' => variable_get('alma_enable_reservation_deletion', FALSE),
+    '#description' => t('Allow users to delete their reservations as well as ready for pickup ones.'),
+  );
+
   $form['alma']['alma_enable_logging'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable logging'),
