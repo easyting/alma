@@ -22,17 +22,21 @@ function alma_reservation_options($type, $account, $reservables) {
   $form = array();
   $profile = ding_user_provider_profile($account);
 
-  $branches =  alma_reservation_pickup_branches($account);
+  $branches = alma_reservation_pickup_branches($account);
+  $periods = alma_get_interest_periods();
   // @todo; use local branches from issue - some migth not be available in all branches
 
-  if(ding_user_is_provider_user($account)) {
-    $preferred_branch = $profile->alma_preferred_branch[field_language('profile2', $profile, 'alma_preferred_branch')][0]['value'];
+  if (ding_user_is_provider_user($account)) {
+    $preferred_branch = $profile->field_alma_preferred_branch[field_language('profile2', $profile, 'field_alma_preferred_branch')][0]['value'];
+    $interest_period = $profile->field_alma_interest_period[field_language('profile2', $profile, 'field_alma_interest_period')][0]['value'];
   }
   else {
     $preferred_branch = NULL;
+    $interest_period = NULL;
   }
-  
-  $form += ding_reservation_default_options_branch($type, 'alma_preferred_branch',$preferred_branch, $branches);
+
+  $form += ding_reservation_default_options_branch($type, 'alma_preferred_branch', $preferred_branch, $branches);
+  $form += ding_reservation_interest_period_selector($type, 'alma_interest_period', $interest_period, $periods);
 
   return $form;
 }
@@ -41,13 +45,15 @@ function alma_reservation_options($type, $account, $reservables) {
 /**
  * Validate reservations options.
  */
-function alma_reservation_options_validate($type, $account, $reservables, $values) {
+// Doesn't make sense since interest period is shown too.
+// Leave it here maybe for future use.
+/*function alma_reservation_options_validate($type, $account, $reservables, $values) {
   $result = array();
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
   $profile_branch = $profile->alma_preferred_branch[$field_language['alma_preferred_branch']][0]['value'];
   return ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
-}
+}*/
 
 /**
  * Submit handler for reservations options.
@@ -200,7 +206,7 @@ function alma_reservation_update($account, $ids, $options) {
   // Processing IDs. If at least one is updated, return true.
   foreach($ids as $id) {
     if (isset($reservations[$id])) {
-      $expiry_date = !empty($options['expiry']) ? alma_reservation_format_date($options['expiry']) : $reservations[$id]['valid_to'];
+      $expiry_date = !empty($options['alma_interest_period']) ? alma_reservation_format_date(strtotime($reservations[$id]['valid_from']) + $options['alma_interest_period'] * 86400) : $reservations[$id]['valid_to'];
       $pickup_branch = !empty($options['alma_preferred_branch']) ? $options['alma_preferred_branch'] : $reservations[$id]['pickup_branch'];
       $changes = array(
         'valid_to' => $expiry_date,
