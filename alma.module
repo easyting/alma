@@ -246,13 +246,13 @@ function alma_get_organisation($reset = FALSE) {
  * Implements hook_user_view
  */
 function alma_user_view($account, $view_mode, $langcode) {
-  try{
+  try {
     $creds = ding_user_get_creds($account);
   }
-  catch(DingProviderAuthException $e){
+  catch(DingProviderAuthException $e) {
     return NULL;
   }
-  if (($userInfo =  _alma_user_info($creds)) && isset($userInfo)) {
+  if (($userInfo = _alma_user_info($creds)) && isset($userInfo)) {
     foreach ($userInfo as $key => $prop) {
       $data[$key] = isset($prop) ? $prop : '';
     }
@@ -518,12 +518,12 @@ function alma_update_provider( $changes, $profile2 ) {
   try {
     $creds = ding_user_get_creds($profile2);
   }
-  catch (Exception $e){
+  catch (Exception $e) {
     // rethrow ??
     throw $e;
   }
 
-   // mobile phone; add, change, delete
+  // mobile phone; add, change, delete
   if (isset($changes['phone_id'])) {
     if ($changes['mobile'] == 'DELETE') {
       //delete mobile
@@ -536,7 +536,7 @@ function alma_update_provider( $changes, $profile2 ) {
 
       if (!$res) {
         $error_message .= t('mobile not deleted');
-        drupal_set_message($error_message,'warning');
+        drupal_set_message($error_message, 'warning');
       }
     }
     else {
@@ -549,16 +549,16 @@ function alma_update_provider( $changes, $profile2 ) {
        }
        if (!$res) {
 	       $error_message .= t('mobile not updated');
-	       drupal_set_message($error_message,'warning');
+	       drupal_set_message($error_message, 'warning');
       }
     }
   }
-  elseif (isset($changes['mobile'])){
+  elseif (isset($changes['mobile'])) {
     // add mobile
     try {
       $res = alma_client_invoke('add_phone_number', $creds['name'], $creds['pass'], $changes['mobile'] );
     }
-    catch (Exception $e){
+    catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (!$res) {
@@ -568,9 +568,9 @@ function alma_update_provider( $changes, $profile2 ) {
   }
 
   // update reservation pause (absentPeriod)
-  if (!empty( $changes['absent_id']) &&
+  if (!empty($changes['absent_id']) &&
       !empty($changes['reservation_pause_start']) &&
-      !empty( $changes['reservation_pause_stop'])) {
+      !empty($changes['reservation_pause_stop'])) {
 
     try {
       $res =  alma_client_invoke('change_absent_period',$creds['name'], $creds['pass'], $changes['absent_id'], $changes['reservation_pause_start'],$changes['reservation_pause_stop'] );
@@ -589,7 +589,7 @@ function alma_update_provider( $changes, $profile2 ) {
     try {
       $res = alma_client_invoke('add_absent_period',$creds['name'], $creds['pass'], $changes['reservation_pause_start'],$changes['reservation_pause_stop']);
     }
-    catch (Exception $e){
+    catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (!$res) {
@@ -598,11 +598,11 @@ function alma_update_provider( $changes, $profile2 ) {
     }
   }
   // delete reservation pause
-  elseif (!empty( $changes['absent_id'])) {
+  elseif (!empty($changes['absent_id'])) {
     try {
       $res = alma_client_invoke('remove_absent_period', $creds['name'], $creds['pass'], $changes['absent_id']);
     }
-    catch (Exception $e){
+    catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
 
