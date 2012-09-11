@@ -169,7 +169,7 @@ function _alma_set_rows($h) {
       $row['placement'][] = $org['collection'][$data['collection_id']];
     }
 
-    $row['placement'] = implode(' →  ', $row['placement']);
+    $row['placement'] = implode(' → ', $row['placement']);
 
     $row['copies'] = (int) $data['total_count'];
     $copies_total += $row['copies'];
