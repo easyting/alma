@@ -17,12 +17,12 @@ function alma_availability_holdings($provider_ids) {
         'available' => ($record['available_count'] > 0),
         'reservable' => $record['show_reservation_button'],
         'show_reservation_button' => $record['show_reservation_button'],
-        'holdings' => array(),
+        'holdings' => $record['holdings'],
         'holdings_available' => array(),
         'reserved_count' => (int) $record['reservation_count'],
         'total_count' => _alma_count_total($record['holdings'], $record['media_class'] == 'periodical'),
         'deferred_period' => FALSE,
-        'issues' => array(),
+        'issues' => $record['issues'],
         'is_periodical' => ($record['media_class'] == 'periodical'),
       );
       
