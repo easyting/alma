@@ -74,11 +74,6 @@ function alma_user_clear_cache($creds=NULL) {
 }
 
 
-function alma_user_clear_cache($creds=NULL) {
-  $status = alma_get_patron();
-}
-
-
 /**
  * Update profile2 with values from alma patron
  */
