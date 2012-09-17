@@ -148,16 +148,29 @@ function _alma_set_rows($h) {
   $reservations_total = 0;
   foreach ($h as $key => $data) {
     $row = array();
-    $row['placement'] = $org['branch'][$data['branch_id']];
-    
-    if(!empty($data['department_id'])){
-      $row['placement'] = $row['placement'] .' → '. $org['department'][$data['department_id']];
+
+    if (!empty($data['branch_id'])) {
+      $row['placement'][] = $org['branch'][$data['branch_id']];
     }
-    
-    if(!empty($data['collection_id'])){
-      $row['placement'] = $row['placement'] .' → '. $org['collection'][$data['collection_id']];
+
+    if (!empty($data['department_id'])) {
+      $row['placement'][] = $org['department'][$data['department_id']];
     }
-    
+
+    if (!empty($data['location_id'])) {
+      $row['placement'][] = $org['location'][$data['location_id']];
+    }
+
+    if (!empty($data['sublocation_id'])) {
+      $row['placement'][] = $org['sublocation'][$data['sublocation_id']];
+    }
+
+    if (!empty($data['collection_id'])) {
+      $row['placement'][] = $org['collection'][$data['collection_id']];
+    }
+
+    $row['placement'] = implode(' → ', $row['placement']);
+
     $row['copies'] = (int) $data['total_count'];
     $copies_total += $row['copies'];
     $row['home'] = (int) $data['available_count'];
