@@ -17,12 +17,12 @@ function alma_availability_holdings($provider_ids) {
         'available' => ($record['available_count'] > 0),
         'reservable' => $record['show_reservation_button'],
         'show_reservation_button' => $record['show_reservation_button'],
-        'holdings' => array(),
+        'holdings' => $record['holdings'],
         'holdings_available' => array(),
         'reserved_count' => (int) $record['reservation_count'],
         'total_count' => _alma_count_total($record['holdings'], $record['media_class'] == 'periodical'),
         'deferred_period' => FALSE,
-        'issues' => array(),
+        'issues' => $record['issues'],
         'is_periodical' => ($record['media_class'] == 'periodical'),
       );
       
@@ -148,16 +148,29 @@ function _alma_set_rows($h) {
   $reservations_total = 0;
   foreach ($h as $key => $data) {
     $row = array();
-    $row['placement'] = $org['branch'][$data['branch_id']];
-    
-    if(!empty($data['department_id'])){
-      $row['placement'] = $row['placement'] .' → '. $org['department'][$data['department_id']];
+
+    if (!empty($data['branch_id'])) {
+      $row['placement'][] = $org['branch'][$data['branch_id']];
     }
-    
-    if(!empty($data['collection_id'])){
-      $row['placement'] = $row['placement'] .' → '. $org['collection'][$data['collection_id']];
+
+    if (!empty($data['department_id'])) {
+      $row['placement'][] = $org['department'][$data['department_id']];
     }
-    
+
+    if (!empty($data['location_id'])) {
+      $row['placement'][] = $org['location'][$data['location_id']];
+    }
+
+    if (!empty($data['sublocation_id'])) {
+      $row['placement'][] = $org['sublocation'][$data['sublocation_id']];
+    }
+
+    if (!empty($data['collection_id'])) {
+      $row['placement'][] = $org['collection'][$data['collection_id']];
+    }
+
+    $row['placement'] = implode(' → ', $row['placement']);
+
     $row['copies'] = (int) $data['total_count'];
     $copies_total += $row['copies'];
     $row['home'] = (int) $data['available_count'];
