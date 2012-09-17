@@ -245,16 +245,15 @@ function alma_get_organisation($reset = FALSE) {
 /**
  * Implements hook_user_view
  */
-function alma_user_view( $account, $view_mode, $langcode ) {
-  try {
+function alma_user_view($account, $view_mode, $langcode) {
+  try{
     $creds = ding_user_get_creds($account);
   }
-  catch (DingProviderAuthException $e) {
-    return;
+  catch(DingProviderAuthException $e){
+    return NULL;
   }
-
-  if (($userInfo =  alma_user_info($creds)) && isset($userInfo)) {
-    foreach ($userInfo as $key=>$prop) {
+  if (($userInfo =  _alma_user_info($creds)) && isset($userInfo)) {
+    foreach ($userInfo as $key => $prop) {
       $data[$key] = isset($prop) ? $prop : '';
     }
 
@@ -277,10 +276,30 @@ function alma_user_view( $account, $view_mode, $langcode ) {
     );
   };
   // @todo: add provider specific fields
-  alma_set_profile2_fields( $account );
-
+  alma_set_profile2_fields($account);
 }
 
+/**
+ * Callback function to get OpenRuth user information
+ */
+function _alma_user_info($creds = NULL) {
+  // Get patron informations from ALMA.
+  $status = alma_get_patron($creds);
+
+  // Build basic information array, with patron information.
+  $info = array(
+    'firstname' => $status->name,
+    'lastname' => '',
+    'email' => $status->email,
+    'address' => $status->address,
+    'postal' => $status->postal,
+    'city' => $status->city,
+    'mobile' => $status->mobiles,
+    'agency' => $status->branchName,
+  );
+
+  return $info;
+}
 
 function alma_set_profile2_fields($account) {
   if( !module_exists('profile2') ) {
@@ -496,61 +515,64 @@ function alma_profile2_presave($profile2) {
 function alma_update_provider( $changes, $profile2 ) {
   $error_message = t('Error communicating with library system. ');
 
-  try{  $creds = ding_user_get_creds( $profile2 );}
-  catch(Exception $e){
+  try {
+    $creds = ding_user_get_creds($profile2);
+  }
+  catch (Exception $e){
     // rethrow ??
     throw $e;
   }
 
-  // mobile phone; add, change, delete
-  if( isset($changes['phone_id']) ) {
-    if( $changes['mobile'] == 'DELETE' ) {
+   // mobile phone; add, change, delete
+  if (isset($changes['phone_id'])) {
+    if ($changes['mobile'] == 'DELETE') {
       //delete mobile
-      try{
-	$res = alma_client_invoke('remove_phone_number', $creds['name'], $creds['pass'], $changes['phone_id']);
+      try {
+        $res = alma_client_invoke('remove_phone_number', $creds['name'], $creds['pass'], $changes['phone_id']);
       }
-      catch(Exception $e){
-	watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      catch (Exception $e) {
+        watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
       }
-      if( !$res ) {
-	$error_message .= t('mobile not deleted');
-	drupal_set_message($error_message,'warning');
+
+      if (!$res) {
+        $error_message .= t('mobile not deleted');
+        drupal_set_message($error_message,'warning');
       }
     }
     else {
       //update mobile
-       try{
-	$res = alma_client_invoke('change_phone_number', $creds['name'], $creds['pass'], $changes['phone_id'], $changes['mobile']);
-      }
-      catch(Exception $e){
-	watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
-      }
-      if( !$res ) {
-	$error_message .= t('mobile not updated');
-	drupal_set_message($error_message,'warning');
+       try {
+         $res = alma_client_invoke('change_phone_number', $creds['name'], $creds['pass'], $changes['phone_id'], $changes['mobile']);
+       }
+       catch (Exception $e) {
+	       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+       }
+       if (!$res) {
+	       $error_message .= t('mobile not updated');
+	       drupal_set_message($error_message,'warning');
       }
     }
   }
-  elseif( isset($changes['mobile']) ){
+  elseif (isset($changes['mobile'])){
     // add mobile
-    try{
+    try {
       $res = alma_client_invoke('add_phone_number', $creds['name'], $creds['pass'], $changes['mobile'] );
     }
-    catch(Exception $e){
+    catch (Exception $e){
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if( !$res ) {
+    if (!$res) {
       $error_message .= t('mobile not added');
       drupal_set_message($error_message,'warning');
     }
   }
 
   // update reservation pause (absentPeriod)
-  if( !empty( $changes['absent_id'] ) &&
+  if (!empty( $changes['absent_id']) &&
       !empty($changes['reservation_pause_start']) &&
-      !empty( $changes['reservation_pause_stop'] )) {
+      !empty( $changes['reservation_pause_stop'])) {
 
-     try {
+    try {
       $res =  alma_client_invoke('change_absent_period',$creds['name'], $creds['pass'], $changes['absent_id'], $changes['reservation_pause_start'],$changes['reservation_pause_stop'] );
     }
     catch(Exception $e){
@@ -562,25 +584,25 @@ function alma_update_provider( $changes, $profile2 ) {
     }
   }
   // add reservation pause
-  elseif( !empty($changes['reservation_pause_start'])  &&
-	  !empty( $changes['reservation_pause_stop'] ) ) {
+  elseif (!empty($changes['reservation_pause_start'])  &&
+	        !empty($changes['reservation_pause_stop'])) {
     try {
       $res = alma_client_invoke('add_absent_period',$creds['name'], $creds['pass'], $changes['reservation_pause_start'],$changes['reservation_pause_stop']);
     }
-    catch(Exception $e){
+    catch (Exception $e){
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if( !$res ) {
+    if (!$res) {
       $error_message .= t('reservation pause not added');
       drupal_set_message($error_message,'warning');
     }
   }
   // delete reservation pause
-  elseif( !empty( $changes['absent_id'] ) ) {
+  elseif (!empty( $changes['absent_id'])) {
     try {
       $res = alma_client_invoke('remove_absent_period', $creds['name'], $creds['pass'], $changes['absent_id']);
     }
-    catch(Exception $e){
+    catch (Exception $e){
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
 
@@ -593,20 +615,20 @@ function alma_update_provider( $changes, $profile2 ) {
   }
 
   // update preferred branch (patronBranch)
-  if( !empty($changes['preferred_branch'] ) ) {
+  if (!empty($changes['preferred_branch'])) {
     try {
       $res = alma_client_invoke( 'change_patron_preferences' , $creds['name'], $creds['pass'], $changes['preferred_branch']);
     }
     catch(Exception $e){
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if( !$res ) {
+    if (!$res) {
       $error_message .= t('pickup branch not saved');
       drupal_set_message($error_message,'warning');
     }
   }
 
-   // refresh patron
+  // refresh patron
   alma_get_patron($creds, TRUE);
 }
 

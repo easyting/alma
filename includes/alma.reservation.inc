@@ -26,8 +26,8 @@ function alma_reservation_options($type, $account, $reservables) {
   $periods = alma_get_interest_periods();
   // @todo; use local branches from issue - some migth not be available in all branches
 
-  if (ding_user_is_provider_user($account)) {
-    $preferred_branch = $profile->field_alma_preferred_branch[field_language('profile2', $profile, 'field_alma_preferred_branch')][0]['value'];
+  if(ding_user_is_provider_user($account)) {
+    $preferred_branch = $profile->alma_preferred_branch[field_language('profile2', $profile, 'alma_preferred_branch')][0]['value'];
     $interest_period = $profile->field_alma_interest_period[field_language('profile2', $profile, 'field_alma_interest_period')][0]['value'];
   }
   else {
