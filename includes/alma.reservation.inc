@@ -27,7 +27,7 @@ function alma_reservation_options($type, $account, $reservables) {
   // @todo; use local branches from issue - some migth not be available in all branches
 
   if(ding_user_is_provider_user($account)) {
-    $preferred_branch = $profile->alma_preferred_branch[field_language('profile2', $profile, 'alma_preferred_branch')][0]['value'];
+    $preferred_branch = $profile->field_alma_preferred_branch[field_language('profile2', $profile, 'field_alma_preferred_branch')][0]['value'];
     $interest_period = $profile->field_alma_interest_period[field_language('profile2', $profile, 'field_alma_interest_period')][0]['value'];
   }
   else {
@@ -45,15 +45,13 @@ function alma_reservation_options($type, $account, $reservables) {
 /**
  * Validate reservations options.
  */
-// Doesn't make sense since interest period is shown too.
-// Leave it here maybe for future use.
-/*function alma_reservation_options_validate($type, $account, $reservables, $values) {
+function alma_reservation_options_validate($type, $account, $reservables, $values) {
   $result = array();
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
   $profile_branch = $profile->alma_preferred_branch[$field_language['alma_preferred_branch']][0]['value'];
   return ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
-}*/
+}
 
 /**
  * Submit handler for reservations options.
