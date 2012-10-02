@@ -272,17 +272,16 @@ function alma_user_view($account, $view_mode, $langcode) {
       '#markup' => $data['firstname'],
     );
 
-    $address_parts = array($data['address']);
-    if (!empty($data['postal']) || !empty($data['city'])) {
-      $address_parts[] = join('<br /> ', array_filter(array($data['postal'], $data['city'])));
+    if (!empty($data['address']) || !empty($data['postal']) || !empty($data['city'])) {
+      $address_parts = array();
+      $address_parts[] = join('<br /> ', array_filter(array($data['address'], $data['postal'], $data['city'])));
+      // @todo: really, there should be a template for this.
+      $account->content['address'] = array(
+        '#type' => 'item',
+        '#title' => t('Address'),
+        '#markup' => '<p>' . join('<br />',$address_parts) . '</p>',
+      );
     }
-
-    // @todo: really, there should be a template for this.
-    $account->content['address'] = array(
-      '#type' => 'item',
-      '#title' => t('Address'),
-      '#markup' => '<p>' . join('<br />',$address_parts) . '</p>',
-    );
   };
   // @todo: add provider specific fields
   alma_set_profile2_fields($account);
