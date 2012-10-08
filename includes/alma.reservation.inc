@@ -247,8 +247,9 @@ function alma_reservation_delete($account, $id) {
 function alma_reservation_branch_name($branch_id) {
   // Get library organistation from alma.
   $organisation = alma_get_organisation();
-  if (isset($organisation['branch'][$branch_id['alma_preferred_branch']])) {
-    return $organisation['branch'][$branch_id['alma_preferred_branch']];
+  $branch = (is_array($branch_id) && isset($branch_id['alma_preferred_branch'])) ? $branch_id['alma_preferred_branch'] : $branch_id;
+  if (isset($organisation['branch'][$branch])) {
+    return $organisation['branch'][$branch];
   }
   return NULL;
 }
