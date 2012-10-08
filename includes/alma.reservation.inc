@@ -185,6 +185,7 @@ function alma_reservation_create($account, $id, $branch, $expiry=null) {
     // Reset session cache
     alma_reservation_clear_cache();
     return array(
+      'branch' => $branch,
       'queue_number' => $result,
     );
   }
@@ -246,8 +247,8 @@ function alma_reservation_delete($account, $id) {
 function alma_reservation_branch_name($branch_id) {
   // Get library organistation from alma.
   $organisation = alma_get_organisation();
-  if (isset($organisation['branch'][$branch_id])) {
-    return $organisation['branch'][$branch_id];
+  if (isset($organisation['branch'][$branch_id['alma_preferred_branch']])) {
+    return $organisation['branch'][$branch_id['alma_preferred_branch']];
   }
   return NULL;
 }
