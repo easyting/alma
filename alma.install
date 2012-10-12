@@ -12,10 +12,10 @@
 function alma_update_7001() {
   $num_upd = db_update('system')
     ->fields(array(
-      'weight'=>10,
+      'weight' => 10,
     ))
-    ->condition('name','alma','=')
-    ->execute(); 
+    ->condition('name', 'alma', '=')
+    ->execute();
 
   echo $num_upd;
   return t('system weight for alma updated to 10');
