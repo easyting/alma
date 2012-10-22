@@ -17,7 +17,7 @@ function alma_reservation_options($type, $account, $reservables) {
 
   if (!module_exists('ding_reservation')) {
     throw new Exception('Alma reservation options requires ding_reservation.');
-  }  
+  }
 
   $form = array();
   $profile = ding_user_provider_profile($account);
@@ -26,8 +26,8 @@ function alma_reservation_options($type, $account, $reservables) {
   $periods = alma_get_interest_periods();
   // @todo; use local branches from issue - some migth not be available in all branches
 
-  if(ding_user_is_provider_user($account)) {
-    $preferred_branch = $profile->alma_preferred_branch[field_language('profile2', $profile, 'alma_preferred_branch')][0]['value'];
+  if (ding_user_is_provider_user($account)) {
+    $preferred_branch = $profile->field_alma_preferred_branch[field_language('profile2', $profile, 'field_alma_preferred_branch')][0]['value'];
     $interest_period = $profile->field_alma_interest_period[field_language('profile2', $profile, 'field_alma_interest_period')][0]['value'];
   }
   else {
@@ -45,15 +45,13 @@ function alma_reservation_options($type, $account, $reservables) {
 /**
  * Validate reservations options.
  */
-// Doesn't make sense since interest period is shown too.
-// Leave it here maybe for future use.
-/*function alma_reservation_options_validate($type, $account, $reservables, $values) {
+function alma_reservation_options_validate($type, $account, $reservables, $values) {
   $result = array();
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
   $profile_branch = $profile->alma_preferred_branch[$field_language['alma_preferred_branch']][0]['value'];
   return ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
-}*/
+}
 
 /**
  * Submit handler for reservations options.
@@ -123,42 +121,42 @@ function alma_reservation_list($account) {
   return $result;
 }
 
- /**
+/**
  * Create a reservation for a given account.
  */
-function alma_reservation_create($account, $id, $branch, $expiry=null) {
+function alma_reservation_create($account, $id, $branch, $expiry = null) {
   $creds = ding_user_get_creds($account);
   // Check if the users has this reservation and throw exception.
   //if (alma_reservation_exists($creds, $id)) {
-  if( alma_reservation_exists($account, $id) ){
+  if (alma_reservation_exists($account, $id)) {
     throw new DingProviderReservationExists();
   }
 
-  $profile2 = profile2_load_by_user($account,'provider_alma');
-  if( !empty($profile2) ) {
+  $profile2 = profile2_load_by_user($account, 'provider_alma');
+  if (!empty($profile2)) {
     // interest period
-    if( !isset($expiry) ) {
+    if (!isset($expiry)) {
       // get interest period from profile2
       $interest_period = alma_get_interest_period($profile2);
-      if( $interest_period ){	
-	$expiry = REQUEST_TIME + ($interest_period['key'] * 24 * 60 * 60 );
-      }       
-    }    
-    if( !isset($expiry) ) {
+      if ($interest_period) {
+        $expiry = REQUEST_TIME + ($interest_period['key'] * 24 * 60 * 60);
+      }
+    }
+    if (!isset($expiry)) {
       $expiry = REQUEST_TIME + DING_RESERVATION_DEFAULT_INTEREST_PERIOD;
     }
 
     // preferred branch
-    if( empty($branch) ) {
+    if (empty($branch)) {
       $pref_branch = alma_get_preferred_branch($profile2);
-      if( $pref_branch ){
-	$branches = alma_reservation_pickup_branches();
-	foreach($branches as $key => $val){
-	  if( $val == $pref_branch ) {
-	    $branch = $key;
-	    break;	    
-	  }
-	}
+      if ($pref_branch) {
+        $branches = alma_reservation_pickup_branches();
+        foreach ($branches as $key => $val) {
+          if ($val == $pref_branch) {
+            $branch = $key;
+            break;
+          }
+        }
       }
     }
   }
@@ -187,6 +185,7 @@ function alma_reservation_create($account, $id, $branch, $expiry=null) {
     // Reset session cache
     alma_reservation_clear_cache();
     return array(
+      'branch' => $branch,
       'queue_number' => $result,
     );
   }
@@ -204,7 +203,7 @@ function alma_reservation_update($account, $ids, $options) {
   $updated = FALSE;
 
   // Processing IDs. If at least one is updated, return true.
-  foreach($ids as $id) {
+  foreach ($ids as $id) {
     if (isset($reservations[$id])) {
       $expiry_date = !empty($options['alma_interest_period']) ? alma_reservation_format_date(strtotime($reservations[$id]['valid_from']) + $options['alma_interest_period'] * 86400) : $reservations[$id]['valid_to'];
       $pickup_branch = !empty($options['alma_preferred_branch']) ? $options['alma_preferred_branch'] : $reservations[$id]['pickup_branch'];
@@ -232,9 +231,9 @@ function alma_reservation_update($account, $ids, $options) {
 function alma_reservation_delete($account, $id) {
   $creds = ding_user_get_creds($account);
   $reservations = alma_reservation_get_reservations($account);
-  
+
   alma_reservation_clear_cache();
-  if( isset($reservations[$id]) ) {
+  if (isset($reservations[$id])) {
     return alma_client_invoke('remove_reservation', $creds['name'], $creds['pass'], $reservations[$id]);
   }
 }
@@ -248,8 +247,9 @@ function alma_reservation_delete($account, $id) {
 function alma_reservation_branch_name($branch_id) {
   // Get library organistation from alma.
   $organisation = alma_get_organisation();
-  if (isset($organisation['branch'][$branch_id])) {
-    return $organisation['branch'][$branch_id];
+  $branch = (is_array($branch_id) && isset($branch_id['alma_preferred_branch'])) ? $branch_id['alma_preferred_branch'] : $branch_id;
+  if (isset($organisation['branch'][$branch])) {
+    return $organisation['branch'][$branch];
   }
   return NULL;
 }
@@ -274,7 +274,7 @@ function alma_reservation_clear_cache() {
 }
 
 function alma_reservation_exists($account, $item_id) {
-  $reservations = alma_reservation_get_reservations( $account );
+  $reservations = alma_reservation_get_reservations($account);
   foreach ($reservations as $res) {
     if ($res['record_id'] == $item_id) {
       return TRUE;
