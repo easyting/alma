@@ -165,11 +165,11 @@ function _alma_set_rows($h) {
       $row['placement'][] = $org['sublocation'][$data['sublocation_id']];
     }
 
-    if (!empty($data['collection_id'])) {
-      $row['placement'][] = $org['collection'][$data['collection_id']];
+    if (!empty($data['shelf_mark'])) {
+      $row['placement'][] = $data['shelf_mark'];
     }
 
-    $row['placement'] = implode(' → ', $row['placement']);
+    $row['placement'] = implode(' > ', $row['placement']);
 
     $row['copies'] = (int) $data['total_count'];
     $copies_total += $row['copies'];
