@@ -103,6 +103,7 @@ function alma_reservation_list($account) {
         'expiry' => $reservation['valid_to'],
         'queue_number' => $reservation['queue_number'],
         'ready_for_pickup' => 1,
+        'notes' => isset($reservation['notes']) ? $reservation['notes'] : '',
       ));
     }
     else {
@@ -114,6 +115,7 @@ function alma_reservation_list($account) {
         'expiry' => $reservation['valid_to'],
         'queue_number' => $reservation['queue_number'],
         'ready_for_pickup' => 0,
+        'notes' => isset($reservation['notes']) ? $reservation['notes'] : '',
       ));
     }
   }
