@@ -48,7 +48,6 @@ function alma_reservation_options($type, $account, $reservables) {
  * Validate reservations options.
  */
 function alma_reservation_options_validate($type, $account, $reservables, $values) {
-  $result = array();
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
   $profile_branch = $profile->field_alma_preferred_branch[$field_language['field_alma_preferred_branch']][0]['value'];
