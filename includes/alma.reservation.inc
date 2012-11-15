@@ -36,9 +36,7 @@ function alma_reservation_options($type, $account, $reservables) {
   }
 
   $form += ding_reservation_default_options_branch($type, 'alma_preferred_branch', $preferred_branch, $branches);
-  // We don't need this for current solution,
-  // since new profiles always do get a default interest period of 30 days.
-  //$form += ding_reservation_interest_period_selector($type, 'alma_interest_period', $interest_period, $periods);
+  $form += ding_reservation_interest_period_selector($type, 'alma_interest_period', $interest_period, $periods);
 
   return $form;
 }
@@ -51,13 +49,16 @@ function alma_reservation_options_validate($type, $account, $reservables, $value
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
   $profile_branch = $profile->field_alma_preferred_branch[$field_language['field_alma_preferred_branch']][0]['value'];
-  // Perform a check to whether a show an interest period select dropdown.
+  $interest_period = $profile->field_alma_interest_period[$field_language['field_alma_interest_period']][0]['value'];
+  // Perform a check to whether a show specific select dropdown.
   // Returning NULL means to skip this check, therefore to reserve instantly.
-  if (!empty($profile_branch)) {
+  if (!empty($profile_branch) && !empty($interest_period)) {
     return NULL;
   }
   else {
-    return ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
+     $branch_valid = ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
+     $period_valid = ding_reservation_default_options_interest_period_validate($type, 'alma_interest_period', $interest_period, $values);
+     return array_merge($branch_valid, $period_valid);
   }
 }
 
