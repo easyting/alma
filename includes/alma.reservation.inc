@@ -46,11 +46,20 @@ function alma_reservation_options($type, $account, $reservables) {
  * Validate reservations options.
  */
 function alma_reservation_options_validate($type, $account, $reservables, $values) {
-  $result = array();
   $profile = ding_user_provider_profile($account);
   $field_language = field_language('profile2', $profile);
-  $profile_branch = $profile->alma_preferred_branch[$field_language['alma_preferred_branch']][0]['value'];
-  return ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
+  $profile_branch = $profile->field_alma_preferred_branch[$field_language['field_alma_preferred_branch']][0]['value'];
+  $interest_period = $profile->field_alma_interest_period[$field_language['field_alma_interest_period']][0]['value'];
+  // Perform a check to whether a show specific select dropdown.
+  // Returning NULL means to skip this check, therefore to reserve instantly.
+  if (!empty($profile_branch) && !empty($interest_period)) {
+    return NULL;
+  }
+  else {
+     $branch_valid = ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
+     $period_valid = ding_reservation_default_options_interest_period_validate($type, 'alma_interest_period', $interest_period, $values);
+     return array_merge($branch_valid, $period_valid);
+  }
 }
 
 /**
@@ -103,6 +112,7 @@ function alma_reservation_list($account) {
         'expiry' => $reservation['valid_to'],
         'queue_number' => $reservation['queue_number'],
         'ready_for_pickup' => 1,
+        'notes' => isset($reservation['notes']) ? $reservation['notes'] : '',
       ));
     }
     else {
@@ -114,6 +124,7 @@ function alma_reservation_list($account) {
         'expiry' => $reservation['valid_to'],
         'queue_number' => $reservation['queue_number'],
         'ready_for_pickup' => 0,
+        'notes' => isset($reservation['notes']) ? $reservation['notes'] : '',
       ));
     }
   }

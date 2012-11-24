@@ -275,6 +275,7 @@ function alma_user_view($account, $view_mode, $langcode) {
       '#type' => 'item',
       '#title' => t('Name'),
       '#markup' => $data['firstname'],
+      '#weight' => -1,
     );
 
     if (!empty($data['address']) || !empty($data['postal']) || !empty($data['city'])) {
@@ -284,7 +285,8 @@ function alma_user_view($account, $view_mode, $langcode) {
       $account->content['address'] = array(
         '#type' => 'item',
         '#title' => t('Address'),
-        '#markup' => '<p>' . join('<br />', $address_parts) . '</p>',
+        '#markup' => '<p>' . $data['address'] . '<br />' . $data['postal'] . ' ' . $data['city'] . '</p>',
+        '#weight' => 0,
       );
     }
   }
@@ -327,7 +329,6 @@ function alma_set_profile2_fields($account) {
   // wrapper for profile2-fields
   $account->content['profile2'] = array(
       '#type' => 'item',
-      '#title' => t('My library'),
       '#prefix' => '<div class="profile2_provider_fields">',
       '#suffix' => '</div>',
     );
@@ -364,7 +365,7 @@ function alma_set_profile2_fields($account) {
     //wrapper for reservation pause
     $account->content['profile2']['reservation_pause'] = array(
       '#type' => 'item',
-      '#title' => t('Reservation pause'),
+      '#title' => '<h3>' . t('Reservation pause') . '</h3>',
       '#prefix' => '<div class="profile2_provider_reservation_pause">',
       '#suffix' => '</div>',
     );
