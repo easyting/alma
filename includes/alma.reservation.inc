@@ -56,9 +56,9 @@ function alma_reservation_options_validate($type, $account, $reservables, $value
     return NULL;
   }
   else {
-     $branch_valid = ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
-     $period_valid = ding_reservation_default_options_interest_period_validate($type, 'alma_interest_period', $interest_period, $values);
-     return array_merge($branch_valid, $period_valid);
+    $branch_valid = ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
+    $period_valid = ding_reservation_default_options_interest_period_validate($type, 'alma_interest_period', $interest_period, $values);
+    return array_merge($branch_valid, $period_valid);
   }
 }
 
