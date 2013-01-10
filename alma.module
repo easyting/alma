@@ -363,6 +363,11 @@ function alma_set_profile2_fields($account) {
   // set reservation pause
   if ($reservation_pause = alma_get_reservation_pause($profile2)) {
     //wrapper for reservation pause
+    $start = str_replace('T00:00:00', '', $reservation_pause['start']);
+    $start = format_date(strtotime($start), 'custom', 'd/m/Y');
+    $stop = str_replace('T00:00:00', '', $reservation_pause['stop']);
+    $stop = format_date(strtotime($stop), 'custom', 'd/m/Y');
+
     $account->content['profile2']['reservation_pause'] = array(
       '#type' => 'item',
       '#title' => '<h3>' . t('Reservation pause') . '</h3>',
@@ -373,13 +378,13 @@ function alma_set_profile2_fields($account) {
     $account->content['profile2']['reservation_pause']['start'] = array(
       '#type' => 'item',
       '#title' => t('Start'),
-      '#markup' => '<span>' . str_replace('T00:00:00', '', $reservation_pause['start']) . '</span>',
+      '#markup' => '<span>' . $start . '</span>',
     );
 
     $account->content['profile2']['reservation_pause']['stop'] = array(
       '#type' => 'item',
       '#title' => t('Stop'),
-      '#markup' => '<span>' . str_replace('T00:00:00', '', $reservation_pause['stop']) . '</span>',
+      '#markup' => '<span>' . $stop . '</span>',
     );
   }
 }
