@@ -550,7 +550,7 @@ function alma_update_provider($changes, $profile2) {
         watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
       }
 
-      if (!$res) {
+      if (empty($res)) {
         $error_message .= t('mobile not deleted');
         drupal_set_message($error_message, 'warning');
       }
@@ -563,7 +563,7 @@ function alma_update_provider($changes, $profile2) {
       catch (Exception $e) {
         watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
       }
-      if (!$res) {
+      if (empty($res)) {
         $error_message .= t('mobile not updated');
         drupal_set_message($error_message, 'warning');
       }
@@ -577,7 +577,7 @@ function alma_update_provider($changes, $profile2) {
     catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if (!$res) {
+    if (empty($res)) {
       $error_message .= t('mobile not added');
       drupal_set_message($error_message, 'warning');
     }
@@ -592,7 +592,7 @@ function alma_update_provider($changes, $profile2) {
     catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if (!$res) {
+    if (empty($res)) {
       $error_message .= t('reservation pause not updated');
       drupal_set_message($error_message, 'warning');
     }
@@ -605,7 +605,7 @@ function alma_update_provider($changes, $profile2) {
     catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if (!$res) {
+    if (empty($res)) {
       $error_message .= t('reservation pause not added');
       drupal_set_message($error_message, 'warning');
     }
@@ -635,7 +635,7 @@ function alma_update_provider($changes, $profile2) {
     catch (Exception $e) {
       watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
-    if (!$res) {
+    if (empty($res)) {
       $error_message .= t('pickup branch not saved');
       drupal_set_message($error_message, 'warning');
     }
