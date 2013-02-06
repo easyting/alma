@@ -244,8 +244,8 @@ function alma_reservation_delete($account, $id) {
   $reservations = alma_reservation_get_reservations($account);
 
   alma_reservation_clear_cache();
-  if (isset($reservations[$id])) {
-    return alma_client_invoke('remove_reservation', $creds['name'], $creds['pass'], $reservations[$id]);
+  if (isset($reservations[(string)$id])) {
+    return alma_client_invoke('remove_reservation', $creds['name'], $creds['pass'], $reservations[(string)$id]);
   }
 }
 
