@@ -52,8 +52,11 @@ function alma_reservation_options_validate($type, $account, $reservables, $value
   $interest_period = $profile->field_alma_interest_period[$field_language['field_alma_interest_period']][0]['value'];
   // Perform a check to whether a show specific select dropdown.
   // Returning NULL means to skip this check, therefore to reserve instantly.
-  if (!empty($profile_branch) && !empty($interest_period)) {
-    return NULL;
+  if (!empty($profile_branch) && !empty($interest_period) && $type == 'create') {
+    return array(
+      'alma_preferred_branch' => $profile_branch,
+      'alma_interest_period' => $interest_period,
+    );
   }
   else {
     $branch_valid = ding_reservation_default_options_branch_validate($type, 'alma_preferred_branch', $profile_branch, $values);
@@ -244,8 +247,8 @@ function alma_reservation_delete($account, $id) {
   $reservations = alma_reservation_get_reservations($account);
 
   alma_reservation_clear_cache();
-  if (isset($reservations[$id])) {
-    return alma_client_invoke('remove_reservation', $creds['name'], $creds['pass'], $reservations[$id]);
+  if (isset($reservations[(string)$id])) {
+    return alma_client_invoke('remove_reservation', $creds['name'], $creds['pass'], $reservations[(string)$id]);
   }
 }
 
