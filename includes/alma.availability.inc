@@ -104,7 +104,9 @@ function _alma_set_holdings($res) {
  */
 function _alma_set_holdings_periodical($res) {
   $holdings = array();
+  $reservation_count = 0;
   foreach ($res['records'] as $alma_id => $records) {
+    $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding => $issue_year) {
       foreach ($issue_year as $key) {
         $holdings[] = $key[0];
@@ -112,7 +114,7 @@ function _alma_set_holdings_periodical($res) {
     }
   }
 
-  $result = _alma_set_table_html($holdings);
+  $result = _alma_set_table_html($holdings, $reservation_count);
   return $result;
 }
 /**
@@ -191,16 +193,16 @@ function _alma_set_rows($h) {
 
     $row['placement'] = implode(' > ', $row['placement']);
 
-    $row['copies'] = (int) $data['total_count'];
+    $row['copies'] = isset($data['total_count']) ? (int)$data['total_count'] : 0;
     $copies_total += $row['copies'];
 
-    $row['home'] = (int) $data['available_count'];
+    $row['home'] = isset($data['available_count']) ? (int)$data['available_count'] : 0;
     $home_total += $row['home'];
 
-    $row['not_for_loan'] = (int) $data['reference_count'];
+    $row['not_for_loan'] = isset($data['reference_count']) ? (int)$data['reference_count'] : 0;
     $not_for_loan_total += $row['not_for_loan'];
 
-    $row['checked_out'] = (int) $data['checked_out'];
+    $row['checked_out'] = isset($data['checked_out_count']) ? (int)$data['checked_out_count'] : 0;
     $checked_out_total += $row['checked_out'];
 
     $rows[] = $row;
