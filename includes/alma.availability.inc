@@ -121,29 +121,32 @@ function _alma_set_holdings_periodical($res) {
  * @return html-table
  */
 function _alma_set_table_html($h, $r_count) {
-  // set a classname for styling the table
+  // Set a classname for styling the table.
   $variables['attributes'] = array(
     'class' => array(
       drupal_html_class('availability_holdings_table')
-    )
+    ),
   );
-  // set table header
+
+  // Set table header.
   $variables['header'] = array(
     'placement' => t('Placement'),
     'copies' => t('Copies'),
     'home' => t('At home'),
     'not_for_loan' => t('Not for loan'),
     'checked_out' => t('Checked out'),
-    //'reservations' => t('Reservations')
   );
-  // set table rows
+
+  // Set table rows.
   $variables['rows'] = _alma_set_rows($h);
+
+  // Set last row with reservation count.
   $row = array();
   $row['data']['Library'] = t('Reservations');
   $row['data']['Copies'] = $r_count;
   $variables['rows'][] = $row;
-  // theme the table
-  // @TODO; move this to ding_availability ??
+
+  // Theme the table.
   $html = theme('table', $variables);
 
   return $html;
@@ -190,12 +193,16 @@ function _alma_set_rows($h) {
 
     $row['copies'] = (int) $data['total_count'];
     $copies_total += $row['copies'];
+
     $row['home'] = (int) $data['available_count'];
     $home_total += $row['home'];
+
     $row['not_for_loan'] = (int) $data['reference_count'];
     $not_for_loan_total += $row['not_for_loan'];
+
     $row['checked_out'] = (int) $data['checked_out'];
     $checked_out_total += $row['checked_out'];
+
     $rows[] = $row;
   }
 
@@ -212,7 +219,6 @@ function _alma_set_rows($h) {
   $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
   $rows[] = $row;
 
-  // Adding last row - reservations
   return $rows;
 }
 
