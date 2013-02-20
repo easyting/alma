@@ -85,13 +85,15 @@ function _alma_get_holdings($res, $is_periodical = FALSE) {
  */
 function _alma_set_holdings($res) {
   $holdings = array();
+  $reservation_count = 0;
   foreach ($res['records'] as $alma_id => $records) {
+    $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
       $holdings[] = $holding;
     }
   }
 
-  $result = _alma_set_table_html($holdings);
+  $result = _alma_set_table_html($holdings, $reservation_count);
   return $result;
 }
 
@@ -102,7 +104,9 @@ function _alma_set_holdings($res) {
  */
 function _alma_set_holdings_periodical($res) {
   $holdings = array();
+  $reservation_count = 0;
   foreach ($res['records'] as $alma_id => $records) {
+    $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding => $issue_year) {
       foreach ($issue_year as $key) {
         $holdings[] = $key[0];
@@ -110,7 +114,7 @@ function _alma_set_holdings_periodical($res) {
     }
   }
 
-  $result = _alma_set_table_html($holdings);
+  $result = _alma_set_table_html($holdings, $reservation_count);
   return $result;
 }
 /**
@@ -118,18 +122,34 @@ function _alma_set_holdings_periodical($res) {
  * @params $h; holding information for a given material
  * @return html-table
  */
-function _alma_set_table_html($h) {
-  // set a classname for styling the table
-  $variables['attributes'] =
-    array('class' => array(drupal_html_class('availability_holdings_table')));
-  // set table header
-  $variables['header'] =
-    array('placement' => t('Placement'), 'copies' => t('Copies'), 'Home' => t('At home'), 'reservations' => t('Reservations'));
-  // set table rows
+function _alma_set_table_html($h, $r_count) {
+  // Set a classname for styling the table.
+  $variables['attributes'] = array(
+    'class' => array(
+      drupal_html_class('availability_holdings_table')
+    ),
+  );
+
+  // Set table header.
+  $variables['header'] = array(
+    'placement' => t('Placement'),
+    'copies' => t('Copies'),
+    'home' => t('At home'),
+    'not_for_loan' => t('Not for loan'),
+    'checked_out' => t('Checked out'),
+  );
+
+  // Set table rows.
   $variables['rows'] = _alma_set_rows($h);
-  // theme the table
-  // @TODO; move this to ding_availability ??
-  $html = theme('table', $variables );
+
+  // Set last row with reservation count.
+  $row = array();
+  $row['data']['Library'] = t('Reservations');
+  $row['data']['Copies'] = $r_count;
+  $variables['rows'][] = $row;
+
+  // Theme the table.
+  $html = theme('table', $variables);
 
   return $html;
 }
@@ -145,7 +165,9 @@ function _alma_set_rows($h) {
 
   $copies_total = 0;
   $home_total = 0;
-  $reservations_total = 0;
+  $not_for_loan_total = 0;
+  $checked_out_total = 0;
+
   foreach ($h as $key => $data) {
     $row = array();
 
@@ -171,26 +193,34 @@ function _alma_set_rows($h) {
 
     $row['placement'] = implode(' > ', $row['placement']);
 
-    $row['copies'] = (int) $data['total_count'];
+    $row['copies'] = isset($data['total_count']) ? (int)$data['total_count'] : 0;
     $copies_total += $row['copies'];
-    $row['home'] = (int) $data['available_count'];
+
+    $row['home'] = isset($data['available_count']) ? (int)$data['available_count'] : 0;
     $home_total += $row['home'];
-    $row['reservations'] = (int) $data['ordered_count'];
-    $reservations_total += $row['reservations'];
+
+    $row['not_for_loan'] = isset($data['reference_count']) ? (int)$data['reference_count'] : 0;
+    $not_for_loan_total += $row['not_for_loan'];
+
+    $row['checked_out'] = isset($data['checked_out_count']) ? (int)$data['checked_out_count'] : 0;
+    $checked_out_total += $row['checked_out'];
+
     $rows[] = $row;
   }
 
   if (count($rows) >= 1) {
     $rows = _clean_up_rows($rows);
   }
-  //Adding last row - totals
+  // Adding row - totals
   $row = array();
   $row['data']['Library'] = t('Total');
   $row['data']['Copies'] = $copies_total;
   $row['data']['Home'] = $home_total;
-  $row['data']['Reservations'] = $reservations_total;
+  $row['data']['Not for loan'] = $not_for_loan_total;
+  $row['data']['Checked out'] = $checked_out_total;
   $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
   $rows[] = $row;
+
   return $rows;
 }
 
@@ -241,7 +271,8 @@ function _sum_placement($placementsarr) {
     $next_row = $placementsarr[$i];
     $row['copies'] += $next_row['copies'];
     $row['home'] += $next_row['home'];
-    $row['reservations'] += $next_row['reservations'];
+    $row['not_for_loan'] += $next_row['not_for_loan'];
+    $row['checked_out'] += $next_row['checked_out'];
   }
   return $row;
 }
