@@ -180,7 +180,7 @@ function alma_field_default_fields() {
       ),
       'entity_type' => 'profile2',
       'field_name' => 'field_alma_mobile_phone',
-      'label' => 'Mobile phone',
+      'label' => 'Phone',
       'required' => 0,
       'settings' => array(
         'text_processing' => '0',
@@ -395,7 +395,7 @@ function alma_field_default_fields() {
   t('Absent id');
   t('Preferred branch');
   t('Interest period');
-  t('Mobile phone');
+  t('Phone');
   t('Reservation pause');
   t('Set your reservations on pause.');
   t('phone id');
