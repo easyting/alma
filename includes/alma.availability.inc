@@ -145,7 +145,7 @@ function _alma_set_table_html($h, $r_count) {
   // Set last row with reservation count.
   $row = array();
   $row['data']['Library'] = t('Reservations');
-  $row['data']['Copies'] = $r_count;
+  $row['data']['Copies'] = array('data' => $r_count, 'colspan' => 4);
   $variables['rows'][] = $row;
 
   // Theme the table.
