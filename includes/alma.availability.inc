@@ -12,6 +12,7 @@ function alma_availability_holdings($provider_ids) {
 
   if ($details && isset($details['records'])) {
     foreach ($details['records'] as $alma_id => $record) {
+      $is_periodical = $record['media_class'] == 'periodical';
       $holding = array(
         'local_id' => $alma_id,
         'available' => ($record['available_count'] > 0),
@@ -22,8 +23,8 @@ function alma_availability_holdings($provider_ids) {
         'reserved_count' => (int) $record['reservation_count'],
         'total_count' => _alma_count_total($record['holdings'], $record['media_class'] == 'periodical'),
         'deferred_period' => FALSE,
-        'issues' => _alma_populate_issues($record['holdings']),
-        'is_periodical' => ($record['media_class'] == 'periodical'),
+        'issues' => ($is_periodical) ? _alma_populate_issues($record['holdings']) : array(),
+        'is_periodical' => $is_periodical,
       );
 
       $result[$alma_id] = $holding;
@@ -315,80 +316,86 @@ function _alma_populate_issues($input) {
 
   $i = -1;
   // Loop through volumes.
-  foreach ($input as $year => $volume) {
-    // Loop through issues.
-    foreach ($volume as $key => $issues) {
-      $ordered_count = 0;
-      $checked_out_count = 0;
-      $reference_count = 0;
-      $total_count = 0;
-      $available_count = 0;
-      $output[$year][$key]['local_id'] = $issues[0]['reservable'];
-      $output[$year][$key]['provider'] = 'alma';
-      $i = 0;
-      // Loop though placements.
-      foreach ($issues as $copy) {
-        $placement = array();
-        $branch_id = !empty($copy['branch_id']) ? $copy['branch_id'] : '';
-        $department_id = !empty($copy['department_id']) ? $copy['department_id'] : '';
-        $location_id = !empty($copy['location_id']) ? $copy['location_id'] : '';
-        $sublocation_id = !empty($copy['sublocation_id']) ? $copy['sublocation_id'] : '';
-        $shelf_mark = !empty($copy['shelf_mark']) ? $copy['shelf_mark'] : '';
-
-        if (!empty($branch_id)) {
-          $placement[] = $org['branch'][$branch_id];
-        }
-
-        if (!empty($department_id)) {
-          $placement[] = $org['department'][$department_id];
-        }
-
-        if (!empty($location_id)) {
-          $placement[] = $org['location'][$location_id];
-        }
-
-        if (!empty($sublocation_id)) {
-          $placement[] = $org['sublocation'][$sublocation_id];
-        }
-
-        if (!empty($shelf_mark)) {
-          $placement[] = $shelf_mark;
-        }
-
-        $placement_string = implode(' > ', $placement);
-
-        // A hash value, used for recognizing differences in placement.
-        $hash = md5($branch_id . $department_id . $location_id . $sublocation_id . $shelf_mark);
-
-        // Whether it's a new placement, start a new count and increment the
-        // row counter.
-        if ($hash !== $prev_hash) {
-          $prev_hash = $hash;
+  if (is_array($input)) {
+    foreach ($input as $year => $volume) {
+      // Loop through issues.
+      if (is_array($volume)) {
+        foreach ($volume as $key => $issues) {
           $ordered_count = 0;
           $checked_out_count = 0;
           $reference_count = 0;
           $total_count = 0;
           $available_count = 0;
-          $i++;
+          $output[$year][$key]['local_id'] = $issues[0]['reservable'];
+          $output[$year][$key]['provider'] = 'alma';
+          $i = 0;
+          // Loop though placements.
+          if (is_array($issues)) {
+            foreach ($issues as $copy) {
+              $placement = array();
+              $branch_id = !empty($copy['branch_id']) ? $copy['branch_id'] : '';
+              $department_id = !empty($copy['department_id']) ? $copy['department_id'] : '';
+              $location_id = !empty($copy['location_id']) ? $copy['location_id'] : '';
+              $sublocation_id = !empty($copy['sublocation_id']) ? $copy['sublocation_id'] : '';
+              $shelf_mark = !empty($copy['shelf_mark']) ? $copy['shelf_mark'] : '';
+
+              if (!empty($branch_id)) {
+                $placement[] = $org['branch'][$branch_id];
+              }
+
+              if (!empty($department_id)) {
+                $placement[] = $org['department'][$department_id];
+              }
+
+              if (!empty($location_id)) {
+                $placement[] = $org['location'][$location_id];
+              }
+
+              if (!empty($sublocation_id)) {
+                $placement[] = $org['sublocation'][$sublocation_id];
+              }
+
+              if (!empty($shelf_mark)) {
+                $placement[] = $shelf_mark;
+              }
+
+              $placement_string = implode(' > ', $placement);
+
+              // A hash value, used for recognizing differences in placement.
+              $hash = md5($branch_id . $department_id . $location_id . $sublocation_id . $shelf_mark);
+
+              // Whether it's a new placement, start a new count and increment the
+              // row counter.
+              if ($hash !== $prev_hash) {
+                $prev_hash = $hash;
+                $ordered_count = 0;
+                $checked_out_count = 0;
+                $reference_count = 0;
+                $total_count = 0;
+                $available_count = 0;
+                $i++;
+              }
+
+              // The numeric data keeps summing each other, until
+              // we get a new placement.
+              $ordered_count += $copy['ordered_count'];
+              $checked_out_count += $copy['checked_out_count'];
+              $reference_count += $copy['reference_count'];
+              $total_count += $copy['total_count'];
+              $available_count += $copy['available_count'];
+
+              $output[$year][$key]['placement'][$i] = array(
+                'location' => $placement_string,
+                'ordered_count' => $ordered_count,
+                'checked_out_count' => $checked_out_count,
+                'reference_count' => $reference_count,
+                'total_count' => $total_count,
+                'available_count' => $available_count,
+                'reservable' => ($copy['status'] === 'availableForLoan') ? TRUE : FALSE,
+              );
+            }
+          }
         }
-
-        // The numeric data keeps summing each other, until
-        // we get a new placement.
-        $ordered_count += $copy['ordered_count'];
-        $checked_out_count += $copy['checked_out_count'];
-        $reference_count += $copy['reference_count'];
-        $total_count += $copy['total_count'];
-        $available_count += $copy['available_count'];
-
-        $output[$year][$key]['placement'][$i] = array(
-          'location' => $placement_string,
-          'ordered_count' => $ordered_count,
-          'checked_out_count' => $checked_out_count,
-          'reference_count' => $reference_count,
-          'total_count' => $total_count,
-          'available_count' => $available_count,
-          'reservable' => ($copy['status'] === 'availableForLoan') ? TRUE : FALSE,
-        );
       }
     }
   }
