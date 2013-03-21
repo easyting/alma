@@ -430,7 +430,7 @@ function alma_get_interest_period($profile2) {
   $interest_period = FALSE;
   $int_values = isset($field_info['settings']['allowed_values']) ?  $field_info['settings']['allowed_values'] : FALSE;
   if ($int_values) {
-    $int_period = $profile2->field_alma_interest_period[$langs['field_alma_interest_period']][0]['value'];
+    $int_period = isset($profile2->field_alma_interest_period[$langs['field_alma_interest_period']][0]['value']) ? $profile2->field_alma_interest_period[$langs['field_alma_interest_period']][0]['value'] : '_none';
     $interest_period = isset($int_values[$int_period]) ? array('key' => $int_period, 'value' => $int_values[$int_period]) : FALSE;
   }
   return $interest_period;
@@ -495,7 +495,7 @@ function alma_profile2_presave($profile2) {
   // alma_preferred_branch (patronBranch)
   if (!empty($profile2->original->field_alma_preferred_branch)) {
     $org_branch = $profile2->original->field_alma_preferred_branch[$langs['field_alma_preferred_branch']][0]['value'];
-    $new_branch = $profile2->field_alma_preferred_branch[$langs['field_alma_preferred_branch']][0]['value'];
+    $new_branch = isset($profile2->field_alma_preferred_branch[$langs['field_alma_preferred_branch']][0]['value']) ? $profile2->field_alma_preferred_branch[$langs['field_alma_preferred_branch']][0]['value'] : '_none';
     if ($org_branch != $new_branch) {
       $changes['preferred_branch'] = $new_branch;
     }
