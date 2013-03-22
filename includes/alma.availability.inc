@@ -18,12 +18,12 @@ function alma_availability_holdings($provider_ids) {
         'available' => ($record['available_count'] > 0),
         'reservable' => $record['show_reservation_button'],
         'show_reservation_button' => $record['show_reservation_button'],
-        'holdings' => $record['holdings'],
+        'holdings' => isset($record['holdings']) ? $record['holdings'] : array(),
         'holdings_available' => array(),
         'reserved_count' => (int) $record['reservation_count'],
-        'total_count' => _alma_count_total($record['holdings'], $record['media_class'] == 'periodical'),
+        'total_count' => isset($record['holdings']) ? _alma_count_total($record['holdings'], $record['media_class'] == 'periodical') : 0,
         'deferred_period' => FALSE,
-        'issues' => ($is_periodical) ? _alma_populate_issues($record['holdings']) : array(),
+        'issues' => ($is_periodical && isset($record['holdings'])) ? _alma_populate_issues($record['holdings']) : array(),
         'is_periodical' => $is_periodical,
       );
 
@@ -108,9 +108,11 @@ function _alma_set_holdings_periodical($res) {
   $reservation_count = 0;
   foreach ($res['records'] as $alma_id => $records) {
     $reservation_count += (int) $records['reservation_count'];
-    foreach ($records['holdings'] as $holding => $issue_year) {
-      foreach ($issue_year as $key) {
-        $holdings[] = $key[0];
+    if (isset($records['holdings'])) {
+      foreach ($records['holdings'] as $holding => $issue_year) {
+        foreach ($issue_year as $key) {
+          $holdings[] = $key[0];
+        }
       }
     }
   }
