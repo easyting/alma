@@ -19,7 +19,6 @@ function alma_availability_holdings($provider_ids) {
         'reservable' => $record['show_reservation_button'],
         'show_reservation_button' => $record['show_reservation_button'],
         'holdings' => isset($record['holdings']) ? $record['holdings'] : array(),
-        'holdings_available' => array(),
         'reserved_count' => (int) $record['reservation_count'],
         'total_count' => isset($record['holdings']) ? _alma_count_total($record['holdings'], $record['media_class'] == 'periodical') : 0,
         'deferred_period' => FALSE,
