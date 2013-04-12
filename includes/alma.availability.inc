@@ -151,10 +151,13 @@ function _alma_set_table_html($h, $r_count) {
   $variables['rows'][] = $row;
 
   // Theme the table.
-  $html = theme('table', $variables);
-
-  return $html;
+  $renderable = array(
+   '#theme' => 'alma_table',
+   '#data' => $variables,
+  );
+  return drupal_render($renderable);
 }
+
 
 /**
  * set rows in table for given holdings
@@ -167,9 +170,7 @@ function _alma_set_rows($h) {
 
   $copies_total = 0;
   $home_total = 0;
-  $not_for_loan_total = 0;
-  $checked_out_total = 0;
-
+  
   foreach ($h as $key => $data) {
     $row = array();
 
@@ -201,12 +202,6 @@ function _alma_set_rows($h) {
     $row['home'] = isset($data['available_count']) ? (int)$data['available_count'] : 0;
     $home_total += $row['home'];
 
-    $row['not_for_loan'] = isset($data['reference_count']) ? (int)$data['reference_count'] : 0;
-    $not_for_loan_total += $row['not_for_loan'];
-
-    $row['checked_out'] = isset($data['checked_out_count']) ? (int)$data['checked_out_count'] : 0;
-    $checked_out_total += $row['checked_out'];
-
     $rows[] = $row;
   }
 
@@ -218,8 +213,6 @@ function _alma_set_rows($h) {
   $row['data']['Library'] = t('Total');
   $row['data']['Copies'] = $copies_total;
   $row['data']['Home'] = $home_total;
-  $row['data']['Not for loan'] = $not_for_loan_total;
-  $row['data']['Checked out'] = $checked_out_total;
   $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
   $rows[] = $row;
 
