@@ -60,6 +60,19 @@ function alma_requirements($phase) {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function alma_theme() {
+  return array(
+    // Theming of availability table.
+    'alma_table' => array(
+      'variables' => array('data' => array(array())),
+      'template' => 'alma_table',
+    ),
+  );
+}
+
+/**
  * Implements hook_ding_provider().
  */
 function alma_ding_provider() {
