@@ -137,8 +137,6 @@ function _alma_set_table_html($h, $r_count) {
     'placement' => t('Placement'),
     'copies' => t('Copies'),
     'home' => t('At home'),
-    'not_for_loan' => t('Not for loan'),
-    'checked_out' => t('Checked out'),
   );
 
   // Set table rows.
@@ -266,8 +264,6 @@ function _sum_placement($placementsarr) {
     $next_row = $placementsarr[$i];
     $row['copies'] += $next_row['copies'];
     $row['home'] += $next_row['home'];
-    $row['not_for_loan'] += $next_row['not_for_loan'];
-    $row['checked_out'] += $next_row['checked_out'];
   }
   return $row;
 }
