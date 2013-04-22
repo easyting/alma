@@ -11,7 +11,7 @@
     if (isset($element['data'])) {
       if (isset($element['class'])) {
         ?>
-        <tr class="<?php echo !empty($element['data']['Class']) ? $element['data']['Class'] : '' ?>">
+        <tr class="total-holdings <?php echo !empty($element['data']['Class']) ? $element['data']['Class'] : '' ?>">
           <td><?php echo !empty($element['data']['Library']) ? $element['data']['Library'] : '' ?></td>
           <td><?php echo !empty($element['data']['Copies']) ? $element['data']['Copies'] : '' ?></td>
           <td><?php echo !empty($element['data']['Home']) ? $element['data']['Home'] : '' ?></td>       
