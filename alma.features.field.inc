@@ -158,7 +158,7 @@ function alma_field_default_fields() {
       ),
       'module' => 'text',
       'settings' => array(
-        'max_length' => '16',
+        'max_length' => '255',
         'profile2_private' => 0,
       ),
       'translatable' => '0',
