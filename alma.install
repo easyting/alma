@@ -20,3 +20,20 @@ function alma_update_7001() {
   echo $num_upd;
   return t('system weight for alma updated to 10');
 }
+
+/**
+ * Expands the limit length for the phone field.
+ */
+function alma_update_7002() {
+  db_change_field(
+    'field_data_field_alma_mobile_phone',
+    'field_alma_mobile_phone_value',
+    'field_alma_mobile_phone_value',
+    array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'default' => NULL,
+    )
+  );
+}
