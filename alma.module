@@ -683,6 +683,14 @@ function alma_get_patron($creds = NULL, $reset = FALSE, $as_array = FALSE) {
   if (!$patron || $reset) {
     $info = alma_client_invoke('get_patron_info', $creds['name'], $creds['pass'], TRUE);
     $organisation = alma_get_organisation();
+
+    $branch = empty($info['preferences']['patron_branch']) ? '' : $info['preferences']['patron_branch'];
+
+    $branch_name = '';
+    if (!empty($branch) && !empty($organisation['branch'][$info['preferences']['patron_branch']])) {
+      $branch_name = $organisation['branch'][$info['preferences']['patron_branch']];
+    }
+
     $patron = array(
       'name' => $info['user_name'],
       'email' => isset($info['mails'][0]) ? $info['mails'][0]['mail'] : '',
@@ -690,8 +698,8 @@ function alma_get_patron($creds = NULL, $reset = FALSE, $as_array = FALSE) {
       'postal' => isset($info['addresses'][0]) ? $info['addresses'][0]['postal_code'] : '',
       'city' => isset($info['addresses'][0]) ? $info['addresses'][0]['city'] : '',
       'mobiles' => isset($info['phones']) ? $info['phones'] : '',
-      'branch' => $info['preferences']['patron_branch'],
-      'branchName' => $organisation['branch'][$info['preferences']['patron_branch']],
+      'branch' => $branch,
+      'branchName' => $branch_name,
       'absentPeriods' => isset($info['absent_periods']) ? $info['absent_periods'] : '',
     );
   }
