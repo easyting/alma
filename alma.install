@@ -25,7 +25,7 @@ function alma_update_7001() {
  * Expands the limit length for the phone field.
  */
 function alma_update_7002() {
-  $field_name = 'field_alma_mobile_phone_value';
+  $field_name = 'field_alma_mobile_phone';
 
   // Get the current settings
   $result = db_query('SELECT data FROM {field_config} WHERE field_name = :name', array(':name' => $field_name))->fetchField();
@@ -40,16 +40,27 @@ function alma_update_7002() {
     ->condition('field_name', $field_name)
     ->execute();
 
+  $definition = array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'default' => NULL,
+  );
+
+  $col_name = $field_name. '_value';
+
   db_change_field(
-    'field_data_field_alma_mobile_phone',
-    'field_alma_mobile_phone_value',
-    'field_alma_mobile_phone_value',
-    array(
-      'type' => 'varchar',
-      'length' => 255,
-      'not null' => FALSE,
-      'default' => NULL,
-    )
+    "field_data_$field_name",
+    $col_name,
+    $col_name,
+    $definition
+  );
+
+  db_change_field(
+    "field_revision_$field_name",
+    $col_name,
+    $col_name,
+    $definition
   );
 
   drupal_flush_all_caches();
