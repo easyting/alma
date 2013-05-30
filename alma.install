@@ -43,8 +43,6 @@ function alma_update_7002() {
   $definition = array(
     'type' => 'varchar',
     'length' => 255,
-    'not null' => FALSE,
-    'default' => NULL,
   );
 
   $col_name = $field_name. '_value';
