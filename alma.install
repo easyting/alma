@@ -25,6 +25,20 @@ function alma_update_7001() {
  * Expands the limit length for the phone field.
  */
 function alma_update_7002() {
+  $field_name = 'field_alma_mobile_phone_value';
+
+  // Get the current settings
+  $result = db_query('SELECT data FROM {field_config} WHERE field_name = :name', array(':name' => $field_name))->fetchField();
+
+  // Change the settings
+  $data = unserialize($result);
+  $data['settings']['max_length'] = '255';
+
+  // Write settings back to the database.
+  db_update('field_config')
+    ->fields(array('data' => serialize($data)))
+    ->condition('field_name', $field_name)
+    ->execute();
   db_change_field(
     'field_data_field_alma_mobile_phone',
     'field_alma_mobile_phone_value',
