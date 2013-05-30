@@ -39,6 +39,7 @@ function alma_update_7002() {
     ->fields(array('data' => serialize($data)))
     ->condition('field_name', $field_name)
     ->execute();
+
   db_change_field(
     'field_data_field_alma_mobile_phone',
     'field_alma_mobile_phone_value',
@@ -50,4 +51,6 @@ function alma_update_7002() {
       'default' => NULL,
     )
   );
+
+  drupal_flush_all_caches();
 }
