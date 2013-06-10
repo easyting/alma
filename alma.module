@@ -523,7 +523,8 @@ function alma_profile2_presave($profile2) {
           ? 'DELETE' : $profile2->field_alma_mobile_phone[$langs['field_alma_mobile_phone']][0]['value'];
     if ($org_phone != $new_phone) {
       $changes['mobile'] = $new_phone;
-      $changes['phone_id'] = $profile2->field_alma_phone_id[$langs['field_alma_phone_id']][0]['value'];
+      $phone_id = empty($profile2->field_alma_phone_id[$langs['field_alma_phone_id']][0]['value']) ? NULL : $profile2->field_alma_phone_id[$langs['field_alma_phone_id']][0]['value'];
+      $changes['phone_id'] = $phone_id;
     }
   }
   // If not - add new one.
