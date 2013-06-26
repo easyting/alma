@@ -22,7 +22,7 @@
         ?>
         <tr class="availability-holdings-total-row">
           <td><?php echo !empty($element['data']['Library']) ? $element['data']['Library'] : '' ?></td>
-          <td><?php echo !empty($leement['data']['Copies']['data']) ? $element['data']['Copies']['data'] : '0' ?></td>
+          <td><?php echo !empty($element['data']['Copies']['data']) ? $element['data']['Copies']['data'] : '0' ?></td>
         </tr>
         <?php
       }
