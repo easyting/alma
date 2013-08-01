@@ -143,7 +143,7 @@ function _alma_set_table_html($h, $r_count) {
     );
 
     $row = array();
-    $row['data']['Library'] = t('Closest loan available at: @date', array('@date' => $closest_loan));
+    $row['data']['Library'] = t('Closest loan available on: @date', array('@date' => $closest_loan));
     $row['data']['Copies'] = '';
     $row['data']['Home'] = '';
     $row['class'] = 'closest-loan';
