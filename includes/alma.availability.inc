@@ -132,22 +132,13 @@ function _alma_set_table_html($h, $r_count) {
 
   // Set table rows.
   $rows = _alma_set_rows($h);
+
   if (!empty($rows['open_loan'])) {
-
-    $closest_loan = _alma_get_closest_available_loan($h);
-
     $variables['header'] = array(
       'placement' => t('The item is ordered, but not yet available on the shelf.'),
       'copies' => '',
       'at_home' => '',
     );
-
-    $row = array();
-    $row['data']['Library'] = t('Closest loan available at: @date', array('@date' => $closest_loan));
-    $row['data']['Copies'] = '';
-    $row['data']['Home'] = '';
-    $row['class'] = 'closest-loan';
-    $variables['rows'][] = $row;
 
     $row = array();
     $row['data']['Library'] = t('Reservations');
@@ -427,29 +418,4 @@ function _alma_populate_issues($input) {
   }
 
   return $output;
-}
-
-/**
- * Get the closest available loan date.
- *
- * Look through holdings and find closest loan date.
- *
- * @param Array $holdings
- *   Array of holdings.
- *
- * @return String
- *   Loan date or FALSE on wrong param.
- */
-function _alma_get_closest_available_loan($holdings) {
-  if (is_array($holdings)) {
-    $available_from = array();
-    foreach ($holdings as $holding) {
-      $available_from[] = strtotime($holding['available_from']);
-    }
-
-    sort($available_from);
-    return date('Y-m-d', reset($available_from));
-  }
-
-  return FALSE;
 }
