@@ -87,6 +87,7 @@ function _alma_set_holdings($res) {
   foreach ($res['records'] as $alma_id => $records) {
     $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
+      $holding['record_available'] = $records['available_count'];
       $holdings[] = $holding;
     }
   }
@@ -224,7 +225,7 @@ function _alma_set_rows($h) {
     if ($data['status'] == 'nonAvailableForLoan' && $data['checked_out_count'] >= $data['total_count']) {
       $c++;
     }
-    elseif ($data['status'] == 'openLoan' && $data['available_count'] < 1 && !empty($data['available_from'])) {
+    elseif ($data['record_available'] < 1 && !empty($data['available_from'])) {
       $d++;
     }
 
@@ -275,7 +276,7 @@ function _alma_set_rows($h) {
     $row['data']['Copies'] = $copies_total;
     $row['data']['Home'] = $home_total;
     $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
-    $rows[] = $row;  
+    $rows[] = $row;
   }
 
   return $rows;
