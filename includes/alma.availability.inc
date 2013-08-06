@@ -88,6 +88,7 @@ function _alma_set_holdings($res) {
     $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
       $holding['record_available'] = $records['available_count'];
+      $holding['reservable'] = $records['show_reservation_button'];
       $holdings[] = $holding;
     }
   }
@@ -135,47 +136,67 @@ function _alma_set_table_html($h, $r_count) {
   $rows = _alma_set_rows($h);
 
   if (!empty($rows['non_available_for_loan'])) {
+
+    $text = t('The item is ordered, but not yet available on the shelf.');
+
+    if (!empty($h[0]['reservable'])) {
+      $text .= '<br />';
+      $text .= t('The item can be reserved. Click to Reserve an item');
+    }
+
+    // Build table.
     $variables['header'] = array(
-      'placement' => t('The item is ordered, but not yet available on the shelf.'),
+      'placement' => '',
       'copies' => '',
       'at_home' => '',
     );
+    $row = array();
+    $row['data']['Library'] = $text;
+    $row['data']['Copies'] = '';
+    $row['data']['Home'] = '';
+    $row['class'] = ' ';
+    $variables['rows'][] = $row;
   }
   elseif (!empty($h[0]) && $h[0]['record_available'] < 1 && !empty($h[0]['available_from'])) {
     // Build text to display.
     $text = 'All items are out on loan';
 
-    if ($h[0]['reservable']) {
-      $text .= ', but can be reserved. Click on Reserve to reserve an item.';
+    if (!empty($h[0]['reservable'])) {
+      $text .= ', but can be reserved. Click to Reserve an item.';
     }
 
-    $text .= '<br />';
-    $text .= 'The waiting time is currently: @days @label';
+    $text .= '.<br />';
+    $text .= 'The waiting time is currently: <strong>%label</strong>.';
 
     // Calculate months/weeks/days remaining.
     $date = _alma_get_closest_available_loan($h);
-    $days = floor(($date - time()) / 86400);
+    $days = ceil(($date - time()) / 86400);
 
     if ($days > 35) {
-      $days = floor($days / 30);
-      $label = 'months';
+      $days = ceil($days / 30);
+      $label = format_plural($days, '1 month', '@count months');
     }
     elseif ($days > 6) {
-      $days = floor($days / 7);
-      $label = 'weeks';
+      $days = ceil($days / 7);
+      $label = format_plural($days, '1 week', '@count weeks');
     }
     else {
-      $label = 'days';
+      $label = format_plural($days, '1 day', '@count days');
     }
-
-    $text = t($text, array('@days' => $days, '@label' => $label));
+    $text = t($text, array('%label' => $label));
 
     // Build table.
     $variables['header'] = array(
-      'placement' => $text,
+      'placement' => '',
       'copies' => '',
       'at_home' => '',
     );
+    $row = array();
+    $row['data']['Library'] = $text;
+    $row['data']['Copies'] = '';
+    $row['data']['Home'] = '';
+    $row['class'] = ' ';
+    $variables['rows'][] = $row;
   }
   else {
     // Set table header.
