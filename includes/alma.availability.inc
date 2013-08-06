@@ -166,29 +166,24 @@ function _alma_set_table_html($h, $r_count) {
     }
 
     $text .= '.<br />';
-    $text .= 'The waiting time is currently: <strong>@days @label</strong>.';
+    $text .= 'The waiting time is currently: <strong>%label</strong>.';
 
     // Calculate months/weeks/days remaining.
     $date = _alma_get_closest_available_loan($h);
     $days = ceil(($date - time()) / 86400);
 
-    $plurals = array('day' => 'days', 'week' => 'weeks', 'month' => 'months');
     if ($days > 35) {
       $days = ceil($days / 30);
-      $label = 'month';
+      $label = format_plural($days, '1 month', '@count months');
     }
     elseif ($days > 6) {
       $days = ceil($days / 7);
-      $label = 'week';
+      $label = format_plural($days, '1 week', '@count weeks');
     }
     else {
-      $label = 'day';
+      $label = format_plural($days, '1 day', '@count days');
     }
-
-    if ($days > 1) {
-      $label = $plurals[$label];
-    }
-    $text = t($text, array('@days' => $days, '@label' => $label));
+    $text = t($text, array('%label' => $label));
 
     // Build table.
     $variables['header'] = array(
