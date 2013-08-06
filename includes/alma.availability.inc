@@ -27,12 +27,10 @@ function alma_availability_holdings($provider_ids) {
       );
 
       $result[$alma_id] = $holding;
-
       $result[$alma_id]['html'] = _alma_get_holdings($details, $holding['is_periodical']);
     }
   }
   return $result;
-
 }
 
 /**
@@ -132,27 +130,46 @@ function _alma_set_table_html($h, $r_count) {
     ),
   );
 
-  // Set table header.
-  $variables['header'] = array(
-    'placement' => t('Placement'),
-    'copies' => t('Copies'),
-    'home' => t('At home'),
-  );
-
   // Set table rows.
-  $variables['rows'] = _alma_set_rows($h);
+  $rows = _alma_set_rows($h);
 
-  // Set last row with reservation count.
-  $row = array();
-  $row['data']['Library'] = t('Reservations');
-  $row['data']['Copies'] = array('data' => $r_count, 'colspan' => 4);
-  $variables['rows'][] = $row;
+  if (!empty($rows['open_loan'])) {
+    $variables['header'] = array(
+      'placement' => t('The item is ordered, but not yet available on the shelf.'),
+      'copies' => '',
+      'at_home' => '',
+    );
+
+    $row = array();
+    $row['data']['Library'] = t('Reservations');
+    $row['data']['Copies'] = $r_count;
+    $row['data']['Home'] = '';
+    $variables['rows'][] = $row;
+  }
+  else {
+    // Set table header.
+    $variables['header'] = array(
+      'placement' => t('Placement'),
+      'copies' => t('Copies'),
+      'at_home' => t('At home'),
+    );
+
+    $variables['rows'] = $rows;
+
+    // Set last row with reservation count.
+    $row = array();
+    $row['data']['Library'] = t('Reservations');
+    $row['data']['Copies'] = $r_count;
+    $row['data']['Home'] = '';
+    $variables['rows'][] = $row;
+  }
 
   // Theme the table.
   $renderable = array(
    '#theme' => 'alma_table',
    '#data' => $variables,
   );
+
   return drupal_render($renderable);
 }
 
@@ -165,12 +182,17 @@ function _alma_set_table_html($h, $r_count) {
 function _alma_set_rows($h) {
   $rows = array();
   $org = alma_get_organisation();
+  $c = 0;
 
   $copies_total = 0;
   $home_total = 0;
-  
+
   foreach ($h as $key => $data) {
     $row = array();
+
+    if ($data['checked_out_count'] >= $data['total_count'] && $data['status'] == 'openLoan') {
+      $c++;
+    }
 
     if (!empty($data['branch_id'])) {
       $row['placement'][] = $org['branch'][$data['branch_id']];
@@ -203,16 +225,21 @@ function _alma_set_rows($h) {
     $rows[] = $row;
   }
 
-  if (count($rows) >= 1) {
-    $rows = _clean_up_rows($rows);
+  if (count($h) == $c) {
+    $rows['open_loan'] = TRUE;
   }
-  // Adding row - totals
-  $row = array();
-  $row['data']['Library'] = t('Total');
-  $row['data']['Copies'] = $copies_total;
-  $row['data']['Home'] = $home_total;
-  $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
-  $rows[] = $row;
+  else {
+    if (count($rows) >= 1) {
+      $rows = _clean_up_rows($rows);
+    }
+    // Adding row - totals
+    $row = array();
+    $row['data']['Library'] = t('Total');
+    $row['data']['Copies'] = $copies_total;
+    $row['data']['Home'] = $home_total;
+    $row['class'] = array(drupal_html_class('availability_holdings_last_row'));
+    $rows[] = $row;  
+  }
 
   return $rows;
 }
