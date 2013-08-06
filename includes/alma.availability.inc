@@ -88,6 +88,7 @@ function _alma_set_holdings($res) {
     $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
       $holding['record_available'] = $records['available_count'];
+      $holding['reservable'] = $records['show_reservation_button'];
       $holdings[] = $holding;
     }
   }
@@ -145,7 +146,7 @@ function _alma_set_table_html($h, $r_count) {
     // Build text to display.
     $text = 'All items are out on loan';
 
-    if ($h[0]['reservable']) {
+    if (!empty($h[0]['reservable'])) {
       $text .= ', but can be reserved. Click on Reserve to reserve an item.';
     }
 
@@ -154,20 +155,24 @@ function _alma_set_table_html($h, $r_count) {
 
     // Calculate months/weeks/days remaining.
     $date = _alma_get_closest_available_loan($h);
-    $days = floor(($date - time()) / 86400);
+    $days = ceil(($date - time()) / 86400);
 
+    $plurals = array('day' => 'days', 'week' => 'weeks', 'month' => 'months');
     if ($days > 35) {
-      $days = floor($days / 30);
-      $label = 'months';
+      $days = ceil($days / 30);
+      $label = 'month';
     }
     elseif ($days > 6) {
-      $days = floor($days / 7);
-      $label = 'weeks';
+      $days = ceil($days / 7);
+      $label = 'week';
     }
     else {
-      $label = 'days';
+      $label = 'day';
     }
 
+    if ($days > 1) {
+      $label = $plurals[$label];
+    }
     $text = t($text, array('@days' => $days, '@label' => $label));
 
     // Build table.
