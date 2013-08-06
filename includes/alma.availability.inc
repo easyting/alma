@@ -88,6 +88,7 @@ function _alma_set_holdings($res) {
     $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
       $holding['record_available'] = $records['available_count'];
+      $holding['reservable'] = $records['show_reservation_button'];
       $holdings[] = $holding;
     }
   }
@@ -135,47 +136,66 @@ function _alma_set_table_html($h, $r_count) {
   $rows = _alma_set_rows($h);
 
   if (!empty($rows['non_available_for_loan'])) {
-    $variables['header'] = array(
-      'placement' => t('The item is ordered, but not yet available on the shelf.'),
-      'copies' => '',
-      'at_home' => '',
-    );
-  }
-  elseif (!empty($rows['loan_waiting'])) {
-    // Build text to display.
-    $text = 'All items are out on loan';
+    $text = t('The item is ordered, but not yet available on the shelf.');
 
-    if ($h[0]['reservable']) {
-      $text .= ', but can be reserved. Click on Reserve to reserve an item.';
+    if (!empty($h[0]['reservable'])) {
+      $text .= '<br />';
+      $text .= t('The item can be reserved. Click to Reserve an item');
     }
-
-    $text .= '<br />';
-    $text .= 'The waiting time is currently: @days @label';
-
-    // Calculate months/weeks/days remaining.
-    $date = _alma_get_closest_available_loan($h);
-    $days = floor(($date - time()) / 86400);
-
-    if ($days > 35) {
-      $days = floor($days / 30);
-      $label = 'months';
-    }
-    elseif ($days > 6) {
-      $days = floor($days / 7);
-      $label = 'weeks';
-    }
-    else {
-      $label = 'days';
-    }
-
-    $text = t($text, array('@days' => $days, '@label' => $label));
 
     // Build table.
     $variables['header'] = array(
-      'placement' => $text,
+      'placement' => '',
       'copies' => '',
       'at_home' => '',
     );
+    $row = array();
+    $row['data']['Library'] = $text;
+    $row['data']['Copies'] = '';
+    $row['data']['Home'] = '';
+    $row['class'] = ' ';
+    $variables['rows'][] = $row;
+  }
+  elseif (!empty($h[0]) && $h[0]['record_available'] < 1 && !empty($h[0]['available_from'])) {
+    // Build text to display.
+    $text = 'All items are out on loan';
+
+    if (!empty($h[0]['reservable'])) {
+      $text .= ', but can be reserved. Click to Reserve an item.';
+    }
+
+    $text .= '.<br />';
+    $text .= 'The waiting time is currently: <strong>%label</strong>.';
+
+    // Calculate months/weeks/days remaining.
+    $date = _alma_get_closest_available_loan($h);
+    $days = ceil(($date - time()) / 86400);
+
+    if ($days > 35) {
+      $days = ceil($days / 30);
+      $label = format_plural($days, '1 month', '@count months');
+    }
+    elseif ($days > 6) {
+      $days = ceil($days / 7);
+      $label = format_plural($days, '1 week', '@count weeks');
+    }
+    else {
+      $label = format_plural($days, '1 day', '@count days');
+    }
+    $text = t($text, array('%label' => $label));
+
+    // Build table.
+    $variables['header'] = array(
+      'placement' => '',
+      'copies' => '',
+      'at_home' => '',
+    );
+    $row = array();
+    $row['data']['Library'] = $text;
+    $row['data']['Copies'] = '';
+    $row['data']['Home'] = '';
+    $row['class'] = ' ';
+    $variables['rows'][] = $row;
   }
   else {
     // Set table header.
@@ -214,7 +234,6 @@ function _alma_set_rows($h) {
   $rows = array();
   $org = alma_get_organisation();
   $c = 0;
-  $d = 0;
 
   $copies_total = 0;
   $home_total = 0;
@@ -224,9 +243,6 @@ function _alma_set_rows($h) {
 
     if ($data['status'] == 'nonAvailableForLoan' && $data['checked_out_count'] >= $data['total_count']) {
       $c++;
-    }
-    elseif ($data['record_available'] < 1 && !empty($data['available_from'])) {
-      $d++;
     }
 
     if (!empty($data['branch_id'])) {
@@ -262,9 +278,6 @@ function _alma_set_rows($h) {
 
   if (count($h) == $c) {
     $rows['non_available_for_loan'] = TRUE;
-  }
-  elseif (count($h) == $d) {
-    $rows['loan_waiting'] = TRUE;
   }
   else {
     if (count($rows) >= 1) {
