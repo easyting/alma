@@ -133,10 +133,9 @@ function _alma_set_table_html($h, $r_count) {
   );
 
   // Set table rows.
-  $rows = _alma_set_rows($h);
+  $rows = count($h) > 0 ? _alma_set_rows($h) : array();
 
   if (!empty($rows['non_available_for_loan'])) {
-
     $text = t('The item is ordered, but not yet available on the shelf.');
 
     if (!empty($h[0]['reservable'])) {
