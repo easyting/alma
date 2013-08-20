@@ -30,7 +30,7 @@ function alma_loan_list($account) {
       'expiry' => $loan['due_date'],
       'renewable' => $loan['is_renewable'],
       'materials_number' => $loan['id'],
-      'notes' => isset($loan['notes']) ? $loan['notes'] : DingEntityBase::NULL,
+      'notes' => isset($loan['notes']) ? $loan['notes'] : NULL,
     ));
   }
 
