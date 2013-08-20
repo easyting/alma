@@ -234,7 +234,6 @@ function _alma_set_rows($h) {
   $rows = array();
   $org = alma_get_organisation();
   $c = 0;
-  $d = 0;
 
   $copies_total = 0;
   $home_total = 0;

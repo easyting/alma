@@ -10,6 +10,9 @@ function alma_user_authenticate($uid, $pass) {
   $return = array(
     'success' => FALSE,
   );
+  if (empty($uid) || empty($pass)) {
+    throw new DingProviderAuthException();
+  }
 
   try {
     $res = alma_client_invoke('get_patron_info', $uid, $pass, TRUE);
