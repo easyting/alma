@@ -28,7 +28,7 @@ define('ALMA_CACHE_TTL', 300);
  * @return array
  *   Various item details.
  */
-function alma_details($provider_ids) {//cache_clear_all(ALMA_CACHE_IGNORE, 'cache');
+function alma_details($provider_ids) {
   // Debug stuff.
   $time_usage = variable_get('alma_enable_debug', FALSE);
   if ($time_usage) {
