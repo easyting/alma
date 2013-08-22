@@ -4,39 +4,182 @@
  * Implements provider availability, holdings.
  */
 
-function alma_availability_holdings($provider_ids) {
-  $ids = join(',', $provider_ids);
+/**
+ * Alma related data cache identifier.
+ */
+define('ALMA_CACHE', 'alma_cache');
 
-  $details = alma_client_invoke('catalogue_record_detail', $ids);
-  $result = array();
+/**
+ * Items which will be ignored in future request cache idenitifer.
+ */
+define('ALMA_CACHE_IGNORE', 'alma_cache_ignore');
 
-  if ($details && isset($details['records'])) {
-    foreach ($details['records'] as $alma_id => $record) {
-      $is_periodical = $record['media_class'] == 'periodical';
-      $holding = array(
-        'local_id' => $alma_id,
-        'available' => ($record['available_count'] > 0),
-        'reservable' => $record['show_reservation_button'],
-        'show_reservation_button' => $record['show_reservation_button'],
-        'holdings' => isset($record['holdings']) ? $record['holdings'] : array(),
-        'reserved_count' => (int) $record['reservation_count'],
-        'total_count' => isset($record['holdings']) ? _alma_count_total($record['holdings'], $record['media_class'] == 'periodical') : 0,
-        'deferred_period' => FALSE,
-        'issues' => ($is_periodical && isset($record['holdings'])) ? _alma_populate_issues($record['holdings']) : array(),
-        'is_periodical' => $is_periodical,
-      );
+/**
+ * Cache lifespan, in seconds, for cached item's data.
+ */
+define('ALMA_CACHE_TTL', 300);
 
-      $result[$alma_id] = $holding;
-      $result[$alma_id]['html'] = _alma_get_holdings($details, $holding['is_periodical']);
+/**
+ * Fetch and cache details for selected items.
+ *
+ * @param array $provider_ids
+ *   Item id's.
+ *
+ * @return array
+ *   Various item details.
+ */
+function alma_details($provider_ids) {
+  // Debug stuff.
+  $time_usage = variable_get('alma_enable_debug', FALSE);
+  if ($time_usage) {
+    $start = microtime(TRUE);
+  }
+
+  $cache_queue = array();
+  $ignore_ids = cache_get(ALMA_CACHE_IGNORE);
+  // Seek for items which are not yet cached.
+  foreach ($provider_ids as $id) {
+    $alma_item_details = cache_get(ALMA_CACHE . '_' . $id);
+
+    if (!$alma_item_details) {
+      if (isset($ignore_ids->data) && in_array($id, $ignore_ids->data)) {
+        continue;
+      }
+      else {
+        $cache_queue[] = $id;
+      }
+    }
+    else {
+      $details[$id] = $alma_item_details->data;
     }
   }
+
+  // Fetch the missing item details and cache them.
+  if (!empty($cache_queue)) {
+    $result = alma_client_invoke('catalogue_record_detail', implode(',', $cache_queue));
+
+    $ignore = $cache_queue;
+    foreach ($cache_queue as $id) {
+      if (isset($result['records'][$id])) {
+        $details[$id] = $result['records'][$id];
+        cache_set(ALMA_CACHE . '_' . $id, $result['records'][$id], 'cache', time() + ALMA_CACHE_TTL);
+        unset($ignore[$id]);
+      }
+    }
+
+    cache_set(ALMA_CACHE_IGNORE, $ignore, 'cache', CACHE_PERMANENT);
+  }
+
+  // Debug stuff.
+  if ($time_usage) {
+    $end = microtime(TRUE);
+    $elapsed = $end - $start;
+
+    watchdog('alma', t('Data retrieved in @s s.'), array('@s' => $elapsed), WATCHDOG_DEBUG);
+  }
+
+  return $details;
+}
+
+/**
+ * Filters and return availability data for certain items, from alma WS/cache.
+ *
+ * @param array $provider_ids
+ *   Array of item id's.
+ *
+ * @return array
+ *   Various availability related data.
+ *
+ * @see alma_details(),
+ */
+function alma_availability_availability($provider_ids) {
+  $details = alma_details($provider_ids);
+  $result = array();
+
+  foreach ($details as $alma_id => $record) {
+    $holding = array(
+      'local_id' => $alma_id,
+      'available' => ($record['available_count'] > 0),
+      'reservable' => $record['show_reservation_button'],
+      'show_reservation_button' => $record['show_reservation_button'],
+    );
+
+    $result[$alma_id] = $holding;
+  }
+
   return $result;
 }
 
 /**
- * @param type $holdings; array containing holding informations
- * @param type $is_periodical; Boolean that indicates whether the shown record is a periodical or not
- * @return sum of all total_count in $holdings
+ * Filters and returns holdings data for certain items, from alma WS/cache.
+ *
+ * @param array $provider_ids
+ *   Array of item id's.
+ *
+ * @return array
+ *   Various holdings related data.
+ *
+ * @see alma_details(),
+ */
+function alma_availability_holdings($provider_ids) {
+  $details = alma_details($provider_ids);
+  $result = array();
+
+  foreach ($details as $alma_id => $record) {
+    $is_periodical = $record['media_class'] == 'periodical';
+    $holding = array(
+      'local_id' => $alma_id,
+      'holdings' => isset($record['holdings']) ? $record['holdings'] : array(),
+      'is_periodical' => $is_periodical,
+    );
+
+    $result[$alma_id] = $holding;
+    $result[$alma_id]['html'] = _alma_get_holdings($details, $holding['is_periodical']);
+  }
+
+  return $result;
+}
+
+/**
+ * Filters and returns issue data for certain items, from alma WS/cache.
+ *
+ * @param array $provider_ids
+ *   Array of item id's.
+ *
+ * @return array
+ *   Various issue related data.
+ *
+ * @see alma_details(),
+ */
+function alma_availability_issues($provider_ids) {
+  $details = alma_details($provider_ids);
+  $result = array();
+
+  foreach ($details as $alma_id => $record) {
+    $is_periodical = $record['media_class'] == 'periodical';
+    $holding = array(
+      'local_id' => $alma_id,
+      'issues' => ($is_periodical && isset($record['holdings'])) ? _alma_populate_issues($record['holdings']) : array(),
+      'is_periodical' => $is_periodical,
+    );
+
+    $result[$alma_id] = $holding;
+    $result[$alma_id]['html'] = _alma_get_holdings($details, $holding['is_periodical']);
+  }
+
+  return $result;
+}
+
+/**
+ * Calculates the sum of a specific holding.
+ *
+ * @param Array $holdings
+ *   Array containing holding informations.
+ * @param Boolean $is_periodical
+ *   Indicates whether the shown record is a periodical or not.
+ *
+ * @return Int
+ *   Sum of all total_count in $holdings.
  */
 function _alma_count_total($holdings, $is_periodical) {
   $total = 0;
@@ -54,16 +197,23 @@ function _alma_count_total($holdings, $is_periodical) {
       $total += $holding['total_count'];
     }
   }
+
   return $total;
 }
 
 /**
- * @param type $res; returned array from alma_client class
- * @param type $is_periodical; Boolean that indicates whether the shown record is a periodical or not
- * @return html to be shown. Returns FALSE if no data is received from alma_client class
+ * Build holding table for simple/periodical items.
+ *
+ * @param Array $res
+ *   Alma WS response.
+ * @param Boolean $is_periodical;
+ *   Iindicates whether the shown record is a periodical or not
+ *
+ * @return Mixed
+ *   HTML table markup or FALSE on failure.
  */
 function _alma_get_holdings($res, $is_periodical = FALSE) {
-  if (isset($res['records'])) {
+  if (isset($res)) {
     if ($is_periodical) {
       return _alma_set_holdings_periodical($res);
     }
@@ -77,14 +227,18 @@ function _alma_get_holdings($res, $is_periodical = FALSE) {
 }
 
 /**
- * set holdings for all kinds of material except periodicals
- * @param array $res
- * @return array $result;
+ * Set holdings data for all the branches.
+ *
+ * @param Array $res
+ *   Alma WS response.
+ *
+ * @return String $result
+ *   HTML markup.
  */
 function _alma_set_holdings($res) {
   $holdings = array();
   $reservation_count = 0;
-  foreach ($res['records'] as $alma_id => $records) {
+  foreach ($res as $alma_id => $records) {
     $reservation_count += (int) $records['reservation_count'];
     foreach ($records['holdings'] as $holding) {
       $holding['record_available'] = $records['available_count'];
@@ -98,14 +252,18 @@ function _alma_set_holdings($res) {
 }
 
 /**
- * set holdings if material is periodical only
- * @param array $res
- * @return array $result
+ * Set holdings data for all the branches, considering periodicals.
+ *
+ * @param Array $res
+ *   Alma WS response.
+ *
+ * @return String $result
+ *   HTML markup.
  */
 function _alma_set_holdings_periodical($res) {
   $holdings = array();
   $reservation_count = 0;
-  foreach ($res['records'] as $alma_id => $records) {
+  foreach ($res as $alma_id => $records) {
     $reservation_count += (int) $records['reservation_count'];
     if (isset($records['holdings'])) {
       foreach ($records['holdings'] as $holding => $issue_year) {
@@ -120,9 +278,15 @@ function _alma_set_holdings_periodical($res) {
   return $result;
 }
 /**
- * Make the html-table
- * @params $h; holding information for a given material
- * @return html-table
+ * Builds the holdings table structure.
+ *
+ * @param Array $h
+ *   Holding information for a given material
+ * @param Int $r_count
+ *   Total count of reservations.
+ *
+ * @return String
+ *   HTML markup.
  */
 function _alma_set_table_html($h, $r_count) {
   // Set a classname for styling the table.
@@ -161,7 +325,7 @@ function _alma_set_table_html($h, $r_count) {
     $text = 'All items are out on loan';
 
     if (!empty($h[0]['reservable'])) {
-      $text .= ', but can be reserved. Click to Reserve an item';
+      $text .= ', but can be reserved. Click to Reserve an item.';
     }
 
     $text .= '.<br />';
@@ -226,9 +390,13 @@ function _alma_set_table_html($h, $r_count) {
 
 
 /**
- * set rows in table for given holdings
- * @param $h; holding information for a given material
- * @return array;
+ * Sets rows in the table for given holdings.
+ *
+ * @param Array $h
+ *   Holding information for a given material.
+ *
+ * @return Array
+ *   Array of rows.
  */
 function _alma_set_rows($h) {
   $rows = array();
@@ -296,9 +464,13 @@ function _alma_set_rows($h) {
 }
 
 /**
- * if the same placement exists several times collect them in one line
- * @param array
- * @return array;
+ * Removed dublicated rows.
+ *
+ * @param Array $_rows
+ *   Earlier built rows.
+ *
+ * @return Array
+ *   Cleaned up rows.
  */
 function _clean_up_rows($_rows) {
   $rows = array();
@@ -313,14 +485,20 @@ function _clean_up_rows($_rows) {
       $rows[] = $this_row;
     }
   }
+
   return $rows;
 }
 
 /**
- * collect materials with the same placement
- * @param array $_rows
+ * Collect materials with the same placement.
+ *
+ * @param Array $_rows
+ *   Earlier built rows.
  * @param String $currkey
- * @return array $rows;
+ *   Current placement.
+ *
+ * @return Array $rows
+ *   Rows with attached placement.
  */
 function _get_placements_with_key($_rows, $currkey) {
   $rows = array();
@@ -331,10 +509,15 @@ function _get_placements_with_key($_rows, $currkey) {
   }
   return $rows;
 }
+
 /**
- * sum material for same placement in one row
- * @param $placementsarr; array with all instances of the same placement - ie. 'Hovedbiblioteket'
- * @return array; $row
+ * Calculate the sum of items for a single branch.
+ *
+ * @param Array $placementsarr
+ *   Array with all instances of the same placement - ie. 'Hovedbiblioteket'.
+ *
+ * @return Array $row
+ *   Array with attached home/copies values.
  */
 function _sum_placement($placementsarr) {
   $row = $placementsarr[0];
@@ -354,7 +537,7 @@ function _sum_placement($placementsarr) {
  *
  * @param $input
  *   Holdings data, as returned from the web-servce.
- * @return
+ * @return Array
  *   An array, with the following keys:
  *   - Issue year.
  *     - Issue number.
@@ -479,7 +662,7 @@ function _alma_populate_issues($input) {
  * @param Array $holdings
  *   Array of holdings.
  *
- * @return String
+ * @return mixed
  *   Loan date or FALSE on wrong param.
  */
 function _alma_get_closest_available_loan($holdings) {

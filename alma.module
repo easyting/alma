@@ -140,6 +140,13 @@ function alma_settings_form() {
     '#description' => t('Logs requests to the Alma webservice. Sensitive information such as CPR number and PIN code is stripped from the requests.'),
   );
 
+  $form['alma']['alma_enable_debug'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable debug'),
+    '#default_value' => variable_get('alma_enable_debug', FALSE),
+    '#description' => t('Logs item requests time usage.'),
+  );
+
   return system_settings_form($form);
 }
 
