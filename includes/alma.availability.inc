@@ -348,18 +348,20 @@ function _alma_set_table_html($h, $r_count) {
     }
     $text = t($text, array('%label' => $label));
 
-    // Build table.
-    $variables['header'] = array(
-      'placement' => '',
-      'copies' => '',
-      'at_home' => '',
-    );
     $row = array();
     $row['data']['Library'] = $text;
     $row['data']['Copies'] = '';
     $row['data']['Home'] = '';
     $row['class'] = ' ';
-    $variables['rows'][] = $row;
+    $rows[] = $row;
+
+    $variables['header'] = array(
+      'placement' => t('Placement'),
+      'copies' => t('Copies'),
+      'at_home' => t('At home'),
+    );
+
+    $variables['rows'] = $rows;
   }
   else {
     // Set table header.
