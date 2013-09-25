@@ -730,7 +730,18 @@ function alma_get_patron($creds = NULL, $reset = FALSE, $as_array = FALSE) {
 function alma_replace_entity($item) {
   $faust_number = explode(':', $item->ding_entity_id);
   $faust_number = $faust_number[1];
-  $alma_object = alma_client_invoke('catalogue_record_detail', $faust_number);
+
+  $cid = md5('alma-' . $item->ding_entity_id);
+  $cache = cache_get($cid);
+  $alma_object = NULL;
+
+  if ($cache) {
+    $alma_object = $cache->data;
+  }
+  else {
+    $alma_object = alma_client_invoke('catalogue_record_detail', $faust_number);
+    cache_set($cid, $alma_object);
+  }
 
   if ($alma_object['request_status'] == 'ok' && isset($alma_object['records'][$faust_number])) {
     $source = $alma_object['records'][$faust_number];
@@ -740,9 +751,8 @@ function alma_replace_entity($item) {
     $pseudo_ting_object->reply = new TingClientObject();
     $pseudo_ting_object->reply->record['dc:title']['dkdcplus:full'] = array($source['titles'][0]);
     $pseudo_ting_object->reply->record['dc:type']['dkdcplus:BibDK-Type'] = array($source['media_class']);
-    // @todo
-    // Author from provider.
-    $pseudo_ting_object->reply->record['dc:creator']['dkdcplus:aut'] = array('');
+    $pseudo_ting_object->reply->record['dc:creator']['dkdcplus:aut'] = $source['notes'];
+    $pseudo_ting_object->reply->record['dc:creator']['oss:sort'] = $source['authors'];
     $pseudo_ting_object->reply->record['dc:date'][''] = array($source['publication_year']);
     $pseudo_ting_object->ting_title = array(LANGUAGE_NONE => array(array('id' => $item->ding_entity_id)));
     $pseudo_ting_object->ting_type = array(LANGUAGE_NONE => array(array('id' => $item->ding_entity_id)));
