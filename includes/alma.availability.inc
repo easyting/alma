@@ -1,6 +1,6 @@
 <?php
-
 /**
+ * @file
  * Implements provider availability, holdings.
  */
 
@@ -75,7 +75,7 @@ function alma_details($provider_ids) {
     $end = microtime(TRUE);
     $elapsed = $end - $start;
 
-    watchdog('alma', t('Data retrieved in @s s.'), array('@s' => $elapsed), WATCHDOG_DEBUG);
+    watchdog('alma', 'Data retrieved in @s s.', array('@s' => $elapsed), WATCHDOG_DEBUG);
   }
 
   return $details;
@@ -90,7 +90,7 @@ function alma_details($provider_ids) {
  * @return array
  *   Various availability related data.
  *
- * @see alma_details(),
+ * @see alma_details()
  */
 function alma_availability_availability($provider_ids) {
   $details = alma_details($provider_ids);
@@ -119,7 +119,7 @@ function alma_availability_availability($provider_ids) {
  * @return array
  *   Various holdings related data.
  *
- * @see alma_details(),
+ * @see alma_details()
  */
 function alma_availability_holdings($provider_ids) {
   $details = alma_details($provider_ids);
@@ -149,7 +149,7 @@ function alma_availability_holdings($provider_ids) {
  * @return array
  *   Various issue related data.
  *
- * @see alma_details(),
+ * @see alma_details()
  */
 function alma_availability_issues($provider_ids) {
   $details = alma_details($provider_ids);
@@ -173,9 +173,9 @@ function alma_availability_issues($provider_ids) {
 /**
  * Calculates the sum of a specific holding.
  *
- * @param Array $holdings
+ * @param array $holdings
  *   Array containing holding informations.
- * @param Boolean $is_periodical
+ * @param bool $is_periodical
  *   Indicates whether the shown record is a periodical or not.
  *
  * @return Int
@@ -204,10 +204,10 @@ function _alma_count_total($holdings, $is_periodical) {
 /**
  * Build holding table for simple/periodical items.
  *
- * @param Array $res
+ * @param array $res
  *   Alma WS response.
- * @param Boolean $is_periodical;
- *   Iindicates whether the shown record is a periodical or not
+ * @param bool $is_periodical
+ *   Indicates whether the shown record is a periodical or not.
  *
  * @return Mixed
  *   HTML table markup or FALSE on failure.
@@ -229,10 +229,10 @@ function _alma_get_holdings($res, $is_periodical = FALSE) {
 /**
  * Set holdings data for all the branches.
  *
- * @param Array $res
+ * @param array $res
  *   Alma WS response.
  *
- * @return String $result
+ * @return string
  *   HTML markup.
  */
 function _alma_set_holdings($res) {
@@ -254,10 +254,10 @@ function _alma_set_holdings($res) {
 /**
  * Set holdings data for all the branches, considering periodicals.
  *
- * @param Array $res
+ * @param array $res
  *   Alma WS response.
  *
- * @return String $result
+ * @return string
  *   HTML markup.
  */
 function _alma_set_holdings_periodical($res) {
@@ -280,19 +280,19 @@ function _alma_set_holdings_periodical($res) {
 /**
  * Builds the holdings table structure.
  *
- * @param Array $h
+ * @param array $h
  *   Holding information for a given material
- * @param Int $r_count
+ * @param int $r_count
  *   Total count of reservations.
  *
- * @return String
+ * @return string
  *   HTML markup.
  */
 function _alma_set_table_html($h, $r_count) {
   // Set a classname for styling the table.
   $variables['attributes'] = array(
     'class' => array(
-      drupal_html_class('availability_holdings_table')
+      drupal_html_class('availability_holdings_table'),
     ),
   );
 
@@ -387,8 +387,8 @@ function _alma_set_table_html($h, $r_count) {
 
   // Theme the table.
   $renderable = array(
-   '#theme' => 'alma_table',
-   '#data' => $variables,
+    '#theme' => 'alma_table',
+    '#data' => $variables,
   );
 
   return drupal_render($renderable);
@@ -398,10 +398,10 @@ function _alma_set_table_html($h, $r_count) {
 /**
  * Sets rows in the table for given holdings.
  *
- * @param Array $h
+ * @param array $h
  *   Holding information for a given material.
  *
- * @return Array
+ * @return array
  *   Array of rows.
  */
 function _alma_set_rows($h) {
@@ -443,10 +443,10 @@ function _alma_set_rows($h) {
 
     $row['placement'] = implode(' > ', $row['placement']);
 
-    $row['copies'] = isset($data['total_count']) ? (int)$data['total_count'] : 0;
+    $row['copies'] = isset($data['total_count']) ? (int) $data['total_count'] : 0;
     $copies_total += $row['copies'];
 
-    $row['home'] = isset($data['available_count']) ? (int)$data['available_count'] : 0;
+    $row['home'] = isset($data['available_count']) ? (int) $data['available_count'] : 0;
     $home_total += $row['home'];
 
     $rows[] = $row;
@@ -459,7 +459,7 @@ function _alma_set_rows($h) {
     if (count($rows) >= 1) {
       $rows = _clean_up_rows($rows);
     }
-    // Adding row - totals
+    // Adding row - totals.
     $row = array();
     $row['data']['Library'] = t('Total');
     $row['data']['Copies'] = $copies_total;
@@ -472,12 +472,12 @@ function _alma_set_rows($h) {
 }
 
 /**
- * Removed dublicated rows.
+ * Removed duplicated rows.
  *
- * @param Array $_rows
+ * @param array $_rows
  *   Earlier built rows.
  *
- * @return Array
+ * @return array
  *   Cleaned up rows.
  */
 function _clean_up_rows($_rows) {
@@ -500,12 +500,12 @@ function _clean_up_rows($_rows) {
 /**
  * Collect materials with the same placement.
  *
- * @param Array $_rows
+ * @param array $_rows
  *   Earlier built rows.
- * @param String $currkey
+ * @param string $currkey
  *   Current placement.
  *
- * @return Array $rows
+ * @return array
  *   Rows with attached placement.
  */
 function _get_placements_with_key($_rows, $currkey) {
@@ -521,10 +521,10 @@ function _get_placements_with_key($_rows, $currkey) {
 /**
  * Calculate the sum of items for a single branch.
  *
- * @param Array $placementsarr
+ * @param array $placementsarr
  *   Array with all instances of the same placement - ie. 'Hovedbiblioteket'.
  *
- * @return Array $row
+ * @return array
  *   Array with attached home/copies values.
  */
 function _sum_placement($placementsarr) {
@@ -543,9 +543,10 @@ function _sum_placement($placementsarr) {
  * This method takes into consideration the repeating placements,
  * and aggregates them, suming the numeric data.
  *
- * @param $input
- *   Holdings data, as returned from the web-servce.
- * @return Array
+ * @param array $input
+ *   Holdings data, as returned from the web-service.
+ *
+ * @return array
  *   An array, with the following keys:
  *   - Issue year.
  *     - Issue number.
@@ -623,8 +624,8 @@ function _alma_populate_issues($input) {
               // A hash value, used for recognizing differences in placement.
               $hash = md5($branch_id . $department_id . $location_id . $sublocation_id . $shelf_mark);
 
-              // Whether it's a new placement, start a new count and increment the
-              // row counter.
+              // Whether it's a new placement, start a new count and increment
+              // the row counter.
               if ($hash !== $prev_hash) {
                 $prev_hash = $hash;
                 $ordered_count = 0;
@@ -667,7 +668,7 @@ function _alma_populate_issues($input) {
  *
  * Look through holdings and find closest loan date.
  *
- * @param Array $holdings
+ * @param array $holdings
  *   Array of holdings.
  *
  * @return mixed

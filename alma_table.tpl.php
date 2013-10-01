@@ -1,3 +1,9 @@
+<?php
+/**
+ * @file
+ * Display holdings.
+ */
+?>
 <table class = "<?php echo !empty($data['attributes']['class'][0]) ? $data['attributes']['class'][0] : '' ?> sticky-enabled" >
   <thead>
     <tr>
@@ -7,9 +13,9 @@
     </tr>
   </thead>
   <?php
-  foreach ($data['rows'] as $element) {
-    if (isset($element['data'])) {
-      if (isset($element['class'])) {
+  foreach ($data['rows'] as $element):
+    if (isset($element['data'])):
+      if (isset($element['class'])):
         ?>
         <tr class="total-holdings <?php echo !empty($element['data']['Class']) ? $element['data']['Class'] : '' ?>">
           <td><?php echo isset($element['data']['Library']) ? $element['data']['Library'] : '' ?></td>
@@ -17,8 +23,7 @@
           <td><?php echo isset($element['data']['Home']) ? $element['data']['Home'] : '0' ?></td>
         </tr>
         <?php
-      }
-      else {
+      else:
         ?>
         <tr class="availability-holdings-total-row">
           <td><?php echo isset($element['data']['Library']) ? $element['data']['Library'] : '' ?></td>
@@ -26,11 +31,8 @@
           <td><?php echo isset($element['data']['Home']) ? $element['data']['Home'] : '0' ?></td>
         </tr>
         <?php
-      }
-      ?>
-      <?php
-    }
-    else {
+      endif;
+    else:
       ?>
       <tr>
         <td><?php echo isset($element['placement']) ? $element['placement'] : '' ?></td>
@@ -38,9 +40,7 @@
         <td><?php echo isset($element['home']) ? $element['home'] : '0' ?></td>       
       </tr>
       <?php
-    }
-    ?>
-    <?php
-  }
+    endif;
+  endforeach;
   ?>
 </table>
