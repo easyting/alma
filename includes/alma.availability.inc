@@ -300,7 +300,11 @@ function _alma_set_table_html($h, $r_count) {
   $rows = count($h) > 0 ? _alma_set_rows($h) : array();
 
   if (!empty($rows['in_acquisition'])) {
-    $text = t('The item is ordered, but not yet available on the shelf.');
+    $text = format_plural(
+        $rows['in_acquisition'],
+        '@count item has been ordered, but not yet available on the shelf.',
+        '@count items have been ordered, but not yet available on the shelf.'
+    );
 
     if (!empty($h[0]['reservable'])) {
       $text .= '<br />';
@@ -403,7 +407,8 @@ function _alma_set_table_html($h, $r_count) {
 function _alma_set_rows($h) {
   $rows = array();
   $org = alma_get_organisation();
-  $c = 0;
+  $in_acquisition = 0;
+  $in_acquisition_items = 0;
 
   $copies_total = 0;
   $home_total = 0;
@@ -412,7 +417,8 @@ function _alma_set_rows($h) {
     $row = array();
 
     if (($data['status'] == 'nonAvailableForLoan' && $data['checked_out_count'] >= $data['total_count']) || $data['status'] == 'inAcquisition') {
-      $c++;
+      $in_acquisition++;
+      $in_acquisition_items = $data['ordered_count'];
     }
 
     if (!empty($data['branch_id'])) {
@@ -446,8 +452,8 @@ function _alma_set_rows($h) {
     $rows[] = $row;
   }
 
-  if (count($h) == $c) {
-    $rows['in_acquisition'] = TRUE;
+  if (count($h) == $in_acquisition) {
+    $rows['in_acquisition'] = $in_acquisition_items;
   }
   else {
     if (count($rows) >= 1) {
