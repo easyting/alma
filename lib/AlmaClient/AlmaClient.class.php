@@ -970,13 +970,16 @@ class AlmaClient {
    *
    * @return Array
    *   Set of items id's.
+   *
+   * @note
+   *   Alma is sensitive about param order when using CCL queries.
    */
   public function run_lms_search($query, $type, $start, $limit) {
     $params = array(
-      'searchText' => $query,
-      'searchType' => $type,
       'startNo' => $start,
       'nofRecords' => $limit,
+      'searchType' => $type,
+      'searchText' => $query,
     );
 
     $doc = $this->request('catalogue/fulltextsearch', $params);
