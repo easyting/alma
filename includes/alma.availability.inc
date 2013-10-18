@@ -360,9 +360,9 @@ function _alma_set_table_html($h, $r_count) {
     $rows[] = $row;
 
     $variables['header'] = array(
-      'placement' => t('Placement'),
-      'copies' => t('Copies'),
-      'at_home' => t('At home'),
+      'placement' => '',
+      'copies' => '',
+      'at_home' => '',
     );
 
     $variables['rows'] = $rows;
