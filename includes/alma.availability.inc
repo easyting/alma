@@ -125,23 +125,11 @@ function alma_availability_holdings($provider_ids) {
   $details = alma_details($provider_ids);
   $result = array();
 
-  foreach ($details as $alma_id => &$record) {
+  foreach ($details as $alma_id => $record) {
     $is_periodical = $record['media_class'] == 'periodical';
-
-    $item_holdings = array();
-    // Remove holdings without available items.
-    if (!empty($record['holdings'])) {
-      foreach ($record['holdings'] as $holding) {
-        if ($holding['available_count'] != 0) {
-          $item_holdings[] = $holding;
-        }
-      }
-      $record['holdings'] = $item_holdings;
-    }
-
     $holding = array(
       'local_id' => $alma_id,
-      'holdings' => $item_holdings,
+      'holdings' => isset($record['holdings']) ? $record['holdings'] : array(),
       'is_periodical' => $is_periodical,
     );
 
