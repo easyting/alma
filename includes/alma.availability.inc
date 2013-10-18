@@ -449,7 +449,9 @@ function _alma_set_rows($h) {
     $row['home'] = isset($data['available_count']) ? (int) $data['available_count'] : 0;
     $home_total += $row['home'];
 
-    $rows[] = $row;
+    if ($data['available_count']) != 0) {
+      $rows[] = $row;
+    }
   }
 
   if (count($h) == $in_acquisition) {
