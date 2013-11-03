@@ -418,7 +418,7 @@ function _alma_set_rows($h) {
 
     if (($data['status'] == 'nonAvailableForLoan' && $data['checked_out_count'] >= $data['total_count']) || $data['status'] == 'inAcquisition') {
       $in_acquisition++;
-      $in_acquisition_items = $data['ordered_count'];
+      $in_acquisition_items += $data['ordered_count'];
     }
 
     if (!empty($data['branch_id'])) {

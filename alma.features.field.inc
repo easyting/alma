@@ -98,6 +98,7 @@ function alma_field_default_fields() {
           90 => t('3 months'),
           180 => t('6 months'),
           365 => t('1 year'),
+          730 => t('2 years'),
         ),
         'allowed_values_function' => '',
         'profile2_private' => 0,
