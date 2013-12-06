@@ -569,7 +569,7 @@ function alma_update_provider($changes, $profile2) {
         $res = alma_client_invoke('remove_phone_number', $creds['name'], $creds['pass'], $changes['phone_id']);
       }
       catch (Exception $e) {
-        watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+        watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
       }
 
       if (empty($res)) {
@@ -583,7 +583,7 @@ function alma_update_provider($changes, $profile2) {
         $res = alma_client_invoke('change_phone_number', $creds['name'], $creds['pass'], $changes['phone_id'], $changes['mobile']);
       }
       catch (Exception $e) {
-        watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+        watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
       }
       if (empty($res)) {
         $error_message .= t('phone not updated');
@@ -597,7 +597,7 @@ function alma_update_provider($changes, $profile2) {
       $res = alma_client_invoke('add_phone_number', $creds['name'], $creds['pass'], $changes['mobile']);
     }
     catch (Exception $e) {
-      watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (empty($res)) {
       $error_message .= t('phone not added');
@@ -612,7 +612,7 @@ function alma_update_provider($changes, $profile2) {
       $res =  alma_client_invoke('change_absent_period', $creds['name'], $creds['pass'], $changes['absent_id'], $changes['reservation_pause_start'], $changes['reservation_pause_stop']);
     }
     catch (Exception $e) {
-      watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (empty($res)) {
       $error_message .= t('reservation pause not updated');
@@ -625,7 +625,7 @@ function alma_update_provider($changes, $profile2) {
       $res = alma_client_invoke('add_absent_period', $creds['name'], $creds['pass'], $changes['reservation_pause_start'], $changes['reservation_pause_stop']);
     }
     catch (Exception $e) {
-      watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (empty($res)) {
       $error_message .= t('reservation pause not added');
@@ -638,7 +638,7 @@ function alma_update_provider($changes, $profile2) {
       $res = alma_client_invoke('remove_absent_period', $creds['name'], $creds['pass'], $changes['absent_id']);
     }
     catch (Exception $e) {
-      watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
 
     // this one actually deletes the reservation pause, but returns an error ??
@@ -655,7 +655,7 @@ function alma_update_provider($changes, $profile2) {
       $res = alma_client_invoke('change_patron_preferences', $creds['name'], $creds['pass'], $changes['preferred_branch']);
     }
     catch (Exception $e) {
-      watchdog('Alma provider', $e->getMessage(), array(), WATCHDOG_ERROR);
+      watchdog('alma', $e->getMessage(), array(), WATCHDOG_ERROR);
     }
     if (empty($res)) {
       $error_message .= t('pickup branch not saved');
