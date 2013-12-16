@@ -25,6 +25,7 @@ function alma_update_7001() {
  * Expands the limit length for the phone field.
  */
 function alma_update_7002() {
+  field_cache_clear();
   $field_name = 'field_alma_mobile_phone';
 
   // Get the current settings
@@ -47,12 +48,51 @@ function alma_update_7002() {
 
   $col_name = $field_name. '_value';
 
+  // Fetch existing data.
+  $rows = db_select("field_data_$field_name", 'f')
+    ->fields('f')
+    ->execute();
+
+  // Reset value.
+  db_update("field_data_$field_name")
+    ->fields(array(
+        $col_name => NULL,
+      ))
+    ->execute();
+
+  // Change schema.
   db_change_field(
     "field_data_$field_name",
     $col_name,
     $col_name,
     $definition
   );
+
+  // Restore data.
+  foreach ($rows as $row) {
+    db_update("field_data_$field_name")
+      ->fields(array(
+          $col_name => $row->$col_name,
+        ))
+      ->condition('entity_id', $row->entity_id, '=')
+      ->condition('revision_id', $row->revision_id, '=')
+      ->condition('language', $row->language, '=')
+      ->condition('deleted', $row->deleted, '=')
+      ->condition('delta', $row->delta, '=')
+      ->execute();
+  }
+
+  // Fetch existing data.
+  $rows = db_select("field_revision_$field_name", 'f')
+    ->fields('f')
+    ->execute();
+
+  // Reset value.
+  db_update("field_revision_$field_name")
+    ->fields(array(
+        $col_name => NULL,
+      ))
+    ->execute();
 
   db_change_field(
     "field_revision_$field_name",
@@ -61,5 +101,19 @@ function alma_update_7002() {
     $definition
   );
 
-  drupal_flush_all_caches();
+  // Restore data.
+  foreach ($rows as $row) {
+    db_update("field_revision_$field_name")
+      ->fields(array(
+          $col_name => $row->$col_name,
+        ))
+      ->condition('entity_id', $row->entity_id, '=')
+      ->condition('revision_id', $row->revision_id, '=')
+      ->condition('language', $row->language, '=')
+      ->condition('deleted', $row->deleted, '=')
+      ->condition('delta', $row->delta, '=')
+      ->execute();
+  }
+
+  field_cache_clear();
 }

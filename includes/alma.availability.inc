@@ -360,9 +360,9 @@ function _alma_set_table_html($h, $r_count) {
     $rows[] = $row;
 
     $variables['header'] = array(
-      'placement' => '',
-      'copies' => '',
-      'at_home' => '',
+      'placement' => t('Placement'),
+      'copies' => t('Copies'),
+      'at_home' => t('At home'),
     );
 
     $variables['rows'] = $rows;
@@ -418,7 +418,7 @@ function _alma_set_rows($h) {
 
     if (($data['status'] == 'nonAvailableForLoan' && $data['checked_out_count'] >= $data['total_count']) || $data['status'] == 'inAcquisition') {
       $in_acquisition++;
-      $in_acquisition_items = $data['ordered_count'];
+      $in_acquisition_items += $data['ordered_count'];
     }
 
     if (!empty($data['branch_id'])) {

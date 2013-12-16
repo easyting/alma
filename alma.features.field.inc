@@ -91,10 +91,14 @@ function alma_field_default_fields() {
       'module' => 'list',
       'settings' => array(
         'allowed_values' => array(
+          7 => t('7 days'),
+          14 => t('14 days'),
           30 => t('1 month'),
           60 => t('2 months'),
           90 => t('3 months'),
           180 => t('6 months'),
+          365 => t('1 year'),
+          730 => t('2 years'),
         ),
         'allowed_values_function' => '',
         'profile2_private' => 0,
