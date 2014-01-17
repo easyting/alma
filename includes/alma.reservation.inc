@@ -192,7 +192,8 @@ function alma_reservation_create($account, $id, $branch, $expiry = null) {
      * @todo return better exception that informs the user about the block
      * status.
      */
-    throw new DingProviderReservationNotAllowed('', $result['message']);
+    $detailed_error = alma_reservation_translate_error_code($result['message']);
+    throw new DingProviderReservationNotAllowed(t("You're not allowed to reserve \"@title\".") . ' ' . $detailed_error);
   }
 
   if (is_int($result)) {
@@ -204,7 +205,8 @@ function alma_reservation_create($account, $id, $branch, $expiry = null) {
     );
   }
   else {
-    throw new DingProviderReservationNotAvailable('', $result['message']);
+    $detailed_error = alma_reservation_translate_error_code($result['message']);
+    throw new DingProviderReservationNotAvailable(t('"@title" is not available for reservation.') . ' ' . $detailed_error);
   }
 }
 
@@ -300,4 +302,81 @@ function alma_reservation_exists($account, $item_id) {
 function alma_reservation_format_date($datetime) {
   $timestamp = (!is_int($datetime)) ? strtotime($datetime) : $datetime;
   return date('Y-m-d', $timestamp);
+}
+
+/**
+ * Translate ALMA error code to human readable format.
+ *
+ * @param string $code
+ *  Error code.
+ *
+ * @return string
+ *  Translated message.
+ */
+function alma_reservation_translate_error_code($code) {
+  switch ($code) {
+    case 'reservationAlreadyFilled':
+      return t('Title already reserved and ready for collection.');
+      break;
+
+    case 'reservationAlreadyReserved':
+      return t('Title already reserved.');
+      break;
+
+    case 'reservationDenied':
+      return t('General failure.');
+      break;
+
+    case 'reservationInvalidExpireDate':
+      return t('Expiry date is invalid.');
+      break;
+
+    case 'reservationLoanOnCopy':
+      return t('Patron already has this title on loan.');
+      break;
+
+    case 'reservationNoExpiry':
+      return t('No expiry date given.');
+      break;
+
+    case 'reservationNoHolding':
+      return t('No reservable copies in the accessible branches.');
+      break;
+
+    case 'reservationNoItemsAvailable':
+      return t('No available items match the title.');
+      break;
+
+    case 'reservationNoPeriodicalPermission':
+      return t('Patron has no rights to reserve periodicals.');
+      break;
+
+    case 'reservationNoPermission':
+      return t('Patron has no rights to place reservations.');
+      break;
+
+    case 'reservationNotForLoan':
+      return t('Item not for loan.');
+      break;
+
+    case 'reservationOnShelf':
+      return t('Item is available on shelf for loan.');
+      break;
+
+    case 'reservationPatronBlocked':
+      return t('Patron’s card is blocked.');
+      break;
+
+    case 'reservationPatronMaxReservations':
+      return t('Max number of reservations reached.');
+      break;
+
+    case 'reservationPatronUnderAged':
+      return t('Patron is under age to reserve title.');
+      break;
+
+    default:
+      return t('Unknown error: "@code."', array('@code' => $code));
+      break;
+  }
 }
