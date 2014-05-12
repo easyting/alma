@@ -279,11 +279,14 @@ class AlmaClient {
     }
 
     foreach ($info->getElementsByTagName('phoneNumber') as $phone) {
-      $data['phones'][] = array(
-        'id' => $phone->getAttribute('id'),
-        'phone' => $phone->getAttribute('localCode'),
-        'sms' => (bool) ($phone->getElementsByTagName('sms')->item(0)->getAttribute('useForSms') == 'yes'),
-      );
+      $is_sms = (bool) ($phone->getElementsByTagName('sms')->item(0)->getAttribute('useForSms') == 'yes');
+      if ($is_sms) {
+        $data['phones'][] = array(
+          'id' => $phone->getAttribute('id'),
+          'phone' => $phone->getAttribute('localCode'),
+          'sms' => $is_sms,
+        );
+      }
     }
 
     if ($prefs = $info->getElementsByTagName('patronPreferences')->item(0)) {
