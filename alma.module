@@ -187,10 +187,28 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
   // HOW do we validate
 
   // custom validator ?? maybe pincode validator ??
-  // $form['#validate'][] = 'alma_profile_form_validate';
+  $form['#validate'][] = 'alma_profile_form_validate';
 }
 
+/**
+ * Custom profile form validator.
+ *
+ * Validate reservatino pause dates.
+ *
+ * @see alma_form_user_profile_form_alter()
+ */
+function alma_profile_form_validate($form, $form_state) {
+  $input = $form_state['input'];
+  $start_date = (mktime($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value']['date'])) ?: '';
+  $end_date = (mktime($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value2']['date'])) ?: '';
 
+  if (!empty($start_date) && !empty($end_date)) {
+    $reservation_pause = alma_check_reservation_pause($start_date, $end_date);
+    if (!$reservation_pause) {
+      form_set_error('field_alma_reservation_pause', t('Reservation pause neither can start in the past, start being after end, nor the dates be the same.'));
+    }
+  }
+}
 
 /**
  * Return a fully instantiated AlmaClient instance.
@@ -511,6 +529,7 @@ function alma_profile2_presave($profile2) {
   $org_stop = str_replace('T00:00:00', '', $org_stop);
 
   if ($start != $org_start || $stop != $org_stop) {
+
     $changes['reservation_pause_start'] = $start;
     $changes['reservation_pause_stop'] = $stop;
     $changes['absent_id'] = empty($profile2->field_absent_id[$langs['field_absent_id']][0]['value']) ?
@@ -543,8 +562,6 @@ function alma_profile2_presave($profile2) {
         && empty($profile2->original->field_alma_mobile_phone[$langs['field_alma_mobile_phone']][0]['value'])) {
     $changes['mobile'] = $profile2->field_alma_mobile_phone[$langs['field_alma_mobile_phone']][0]['value'];
   }
-
-
   // Interest period ? apparently not an alma parameter.. @todo; check if Interest period should be saved on provider
 
   // Update provider
@@ -610,8 +627,7 @@ function alma_update_provider($changes, $profile2) {
   }
 
   // Update reservation pause (absentPeriod)
-  if (!empty($changes['absent_id']) && !empty($changes['reservation_pause_start'])
-   && !empty($changes['reservation_pause_stop'])) {
+  if (!empty($changes['absent_id']) && !empty($changes['reservation_pause_start']) && !empty($changes['reservation_pause_stop'])) {
     try {
       $res =  alma_client_invoke('change_absent_period', $creds['name'], $creds['pass'], $changes['absent_id'], $changes['reservation_pause_start'], $changes['reservation_pause_stop']);
     }
@@ -620,7 +636,7 @@ function alma_update_provider($changes, $profile2) {
     }
     if (empty($res)) {
       $error_message .= t('reservation pause not updated');
-      drupal_set_message($error_message, 'warning');
+      drupal_set_message($error_message, 'error');
     }
   }
   // Add reservation pause
@@ -769,4 +785,27 @@ function alma_replace_entity($item) {
   }
 
   return FALSE;
+}
+
+/**
+ * Validate the dates.
+ *
+ * Start and stop dates cannot be lower that current date,
+ * can't be the same and start cannot exceed end date.
+ *
+ * @param int $start
+ *   Start timestamp.
+ * @param int $stop
+ *   End timestamp.
+ * @return boolean
+ *   TRUE/FALSE if dates correspond to conditoons described.
+ */
+function alma_check_reservation_pause($start, $stop) {
+  $now = mktime(date('d/m/Y'));
+
+  if ($start < $now || $stop < $now || $start == $stop || $start > $stop) {
+    return FALSE;
+  }
+
+  return TRUE;
 }
