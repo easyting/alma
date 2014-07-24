@@ -199,11 +199,15 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
  */
 function alma_profile_form_validate($form, $form_state) {
   $input = $form_state['input'];
-  $start_date = (mktime($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value']['date'])) ?: '';
-  $end_date = (mktime($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value2']['date'])) ?: '';
 
-  if (!empty($start_date) && !empty($end_date)) {
-    $reservation_pause = alma_check_reservation_pause($start_date, $end_date);
+  $start_date = ($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value']['date']) ?: '';
+  $end_date = ($input['profile_provider_alma']['field_alma_reservation_pause'][LANGUAGE_NONE][0]['value2']['date']) ?: '';
+
+  $dt_start = DateTime::createFromFormat('d/m/Y', $start_date);
+  $dt_end = DateTime::createFromFormat('d/m/Y', $end_date);
+
+  if (is_object($dt_start) && is_object($dt_end)) {
+    $reservation_pause = alma_check_reservation_pause($dt_start->getTimeStamp(), $dt_end->getTimeStamp());
     if (!$reservation_pause) {
       form_set_error('field_alma_reservation_pause', t('Reservation pause neither can start in the past, start being after end, nor the dates be the same.'));
     }
@@ -801,7 +805,7 @@ function alma_replace_entity($item) {
  *   TRUE/FALSE if dates correspond to conditoons described.
  */
 function alma_check_reservation_pause($start, $stop) {
-  $now = mktime(date('d/m/Y'));
+  $now = time();
 
   if ($start < $now || $stop < $now || $start == $stop || $start > $stop) {
     return FALSE;
