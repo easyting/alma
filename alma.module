@@ -167,6 +167,10 @@ function alma_form_user_profile_form_alter(&$form, &$form_state) {
 
   global $user;
   $profile2 = profile2_load_by_user($user, 'provider_alma');
+  module_load_include('inc', 'alma', 'includes/alma.user');
+  alma_user_profile_init($profile2);
+  $profile2 = profile2_load_by_user($user, 'provider_alma');
+
   // attach profile2 form to user_profile_form.
   // profile2 form could be shown by editing people->permissions->profile2, but profile2 adds a tab and we don't want that.
   if (ding_user_is_provider_user($user) && $profile2) {
@@ -313,6 +317,11 @@ function alma_user_view($account, $view_mode, $langcode) {
   catch (DingProviderAuthException $e) {
     return NULL;
   }
+
+  $profile2 = profile2_load_by_user($account, 'provider_alma');
+  module_load_include('inc', 'alma', 'includes/alma.user');
+  alma_user_profile_init($profile2);
+
   if (($userInfo = _alma_user_info($creds)) && isset($userInfo)) {
     foreach ($userInfo as $key => $prop) {
       $data[$key] = isset($prop) ? $prop : '';
